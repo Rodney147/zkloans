@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/connect/token",
+    "contentType": "application/x-www-form-urlencoded",
+    "body": {
+      "client_id": "<client_id>",
+      "client_secret": "<client_secret>",
+      "scope": "customer-api",
+      "grant_type": "client_credentials"
+    }
+  },
+  "response_200": {
+    "accessToken": "<jwt>",
+    "expiresIn": 3600,
+    "tokenType": "Bearer"
+  },
+  "note": "Responsvelden en geldigheid zijn een aanname."
+}

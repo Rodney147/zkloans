@@ -1,0 +1,1301 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>Loanwise Zakelijk Light</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: Loanwise-huisstijl. Dossierkop → navy segment-tabs → per tab enkele kaarten met een 'Herleiding'-regel. Elke categorierij heeft 'bekijken', dat de onderliggende transacties toont in een venster met controle-som. Eén licht thema, zoals de applicatie. */
+:root {
+  --page: #e5e7eb;
+  --card: #ffffff;
+  --band: #f9fafb;
+  --row: #f3f4f6;
+  --head: #e5e7eb;
+  --border: #e5e7eb;
+  --input: #d1d5dc;
+  --ink: #101828;
+  --text: #364153;
+  --muted: #6a7282;
+  --navy: #002b57;
+  --primary: #005ea2;
+  --primary-hover: #004a80;
+  --chart-line: #a0aec0;
+  --chart-soft: #cbd5e0;
+  --chart-fill: #edf2f7;
+  --grid: #eef0f3;
+  --green: #00a63e;
+  --green-bg: #dcfce7;
+  --green-ink: #008236;
+  --green-icon: #05df72;
+  --amber-bg: #fffbeb;
+  --amber-line: #fde9b6;
+  --amber-chip: #fef3c6;
+  --amber-ink: #bb4d00;
+  --amber-icon: #ffb900;
+  --red: #e7000b;
+  --red-bg: #ffe2e2;
+  --red-ink: #c10007;
+  --red-icon: #fb2c36;
+  --blue-icon: #50a2ff;
+  --primary-tint: #eaf3fb;
+  --overlay: rgba(16, 24, 40, 0.45);
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+body { background: var(--page); color: var(--text); font-family: var(--font); font-size: 13.5px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--page); }
+.wrap { max-width: 1160px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+button, select { font: inherit; color: inherit; }
+
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; padding-block: 24px 16px; }
+.page-head h1 { margin: 0; font-size: 15px; font-weight: 600; color: var(--ink); }
+.page-head .crumb { font-size: 12px; color: var(--muted); }
+.segment-wrap { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
+.segment { display: inline-flex; border: 1px solid var(--input); border-radius: 4px; overflow: hidden; background: var(--card); }
+.segment button { border: 0; background: var(--card); padding: 5px 12px; font-size: 12px; font-weight: 500; color: var(--ink); cursor: pointer; white-space: nowrap; }
+.segment button + button { border-left: 1px solid var(--input); }
+.segment button:hover { background: var(--band); }
+.segment button[aria-pressed="true"], .segment button[aria-selected="true"] { background: var(--navy); color: #ffffff; }
+
+.tabbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--page); padding-block: 4px 16px; }
+.tabbar .segment { display: flex; overflow-x: auto; scrollbar-width: none; max-width: 100%; width: max-content; }
+.tabbar .segment button { padding: 7px 14px; display: inline-flex; align-items: center; gap: 7px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.status-dot.good { background: var(--green); } .status-dot.warn { background: var(--amber-icon); } .status-dot.bad { background: var(--red-icon); }
+
+main .wrap { padding-block: 0 40px; }
+.panel { display: grid; gap: 20px; }
+.card { background: var(--card); border-radius: 8px; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08); min-width: 0; overflow: hidden; }
+.card-head { display: flex; gap: 12px 20px; align-items: flex-start; justify-content: space-between; padding: 18px 24px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.card-head h2 { font-size: 14px; font-weight: 600; margin: 0; color: var(--ink); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; text-wrap: balance; }
+.card-head .sub { color: var(--muted); font-size: 12.5px; margin: 3px 0 0; }
+.card-body { padding: 20px 24px; }
+.source { padding: 12px 24px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); background: var(--band); }
+.source b { color: var(--text); font-weight: 600; }
+code { font-family: var(--mono); font-size: 11.5px; background: var(--row); color: var(--ink); padding: 1px 5px; border-radius: 3px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+
+.select { display: inline-flex; align-items: center; gap: 18px; border: 1px solid var(--input); border-radius: 4px; padding: 6px 10px; background: var(--card); font-size: 12px; color: var(--ink); white-space: nowrap; }
+.select::after { content: ""; width: 7px; height: 7px; border-right: 1.5px solid var(--text); border-bottom: 1.5px solid var(--text); transform: rotate(45deg) translateY(-2px); }
+.btn-outline { border: 1px solid var(--input); border-radius: 4px; background: var(--card); padding: 6px 12px; font-size: 12px; font-weight: 500; color: var(--ink); cursor: pointer; }
+.btn-view { border: 0; border-radius: 4px; background: var(--primary); color: #ffffff; font-size: 11px; font-weight: 600; padding: 3px 9px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; white-space: nowrap; }
+.btn-view:hover { background: var(--primary-hover); }
+.btn-view svg { width: 12px; height: 12px; }
+
+.chip { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; white-space: nowrap; background: var(--row); color: var(--text); }
+.chip.good { background: var(--green-bg); color: var(--green-ink); }
+.chip.warn { background: var(--amber-chip); color: var(--amber-ink); }
+.chip.bad { background: var(--red-bg); color: var(--red-ink); }
+.chip.outline { background: var(--card); border: 1px solid var(--input); }
+.icon { width: 16px; height: 16px; flex: none; }
+
+.dossier { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; padding: 22px 24px; align-items: start; }
+.dossier h2 { font-size: 20px; font-weight: 600; color: var(--ink); margin: 0 0 6px; letter-spacing: -0.01em; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.dossier-meta { display: flex; gap: 6px 22px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.dossier-meta b { color: var(--text); font-weight: 500; }
+.warn-box { display: flex; gap: 12px; align-items: flex-start; background: var(--amber-bg); padding: 14px 24px; border-top: 1px solid var(--amber-line); }
+.warn-box strong { display: block; color: var(--amber-ink); font-weight: 600; font-size: 13px; }
+.warn-box span { color: var(--amber-ink); font-size: 12.5px; }
+
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--border); }
+.tile { padding: 20px 24px; border-right: 1px solid var(--border); display: grid; gap: 4px; align-content: start; min-width: 0; }
+.tile:last-child { border-right: 0; }
+.tile-label { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+.tile-value { font-size: 24px; font-weight: 600; color: var(--ink); letter-spacing: -0.02em; line-height: 1.25; }
+.tile-value small { font-size: 12.5px; font-weight: 500; color: var(--muted); margin-left: 3px; letter-spacing: 0; }
+.tile-sub { font-size: 12.5px; color: var(--muted); }
+.tile-sub b { color: var(--text); font-weight: 500; }
+details.how { margin-top: 8px; font-size: 12px; }
+details.how summary { cursor: pointer; color: var(--primary); list-style: none; display: inline-flex; gap: 4px; align-items: center; }
+details.how summary::-webkit-details-marker { display: none; }
+details.how summary::before { content: "+"; font-weight: 600; width: 10px; }
+details.how[open] summary::before { content: "−"; }
+.formula { margin-top: 8px; padding: 10px 12px; background: var(--band); border: 1px solid var(--border); border-radius: 6px; display: grid; gap: 4px; color: var(--text); }
+
+.windows { display: flex; gap: 8px 20px; flex-wrap: wrap; padding: 12px 24px; background: var(--band); border-bottom: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+.windows b { color: var(--text); font-weight: 600; }
+.sc-head, .sc-row { display: grid; grid-template-columns: 18px minmax(0, 1fr) 132px minmax(0, 170px) 64px 84px; gap: 14px; align-items: center; }
+.sc-head { padding: 10px 24px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; }
+.sc-head span:nth-child(4) { text-align: right; }
+.sc-group { padding: 0 24px 6px; }
+.sc-group + .sc-group { border-top: 1px solid var(--border); }
+.sc-group-title { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 14px 0 2px; }
+.sc-row { padding: 10px 0; border-bottom: 1px solid var(--row); }
+.sc-row:last-child { border-bottom: 0; }
+.sc-name { color: var(--ink); font-weight: 500; }
+.sc-name span { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+.sc-basis { font-size: 12px; color: var(--text); }
+.sc-value { color: var(--ink); text-align: right; }
+.sc-value span { display: block; color: var(--muted); font-size: 12px; }
+.sc-row .btn-view { justify-self: end; }
+.sc-clear { display: flex; gap: 8px 20px; flex-wrap: wrap; padding: 12px 24px 16px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--ink); align-items: center; }
+.sc-clear > span { display: inline-flex; gap: 6px; align-items: center; }
+.sc-clear .label { color: var(--muted); }
+
+.chart { width: 100%; height: auto; display: block; }
+.scroll-x { overflow-x: auto; }
+.scroll-x .chart { min-width: 720px; }
+.t-quiet { fill: var(--muted); font-size: 11px; }
+.t-ink { fill: var(--text); font-size: 11.5px; }
+.t-strong { fill: var(--ink); font-size: 11px; font-weight: 600; }
+.legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); align-items: center; }
+.swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 6px; vertical-align: -1px; }
+.swatch.estimated { background: repeating-linear-gradient(45deg, var(--chart-soft) 0 2px, var(--card) 2px 4px); border: 1px solid var(--chart-soft); }
+
+.figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.figure { padding: 18px 24px; border-right: 1px solid var(--border); }
+.figure:last-child { border-right: 0; }
+.figure b { display: block; font-size: 19px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+.figure b.negative { color: var(--red); }
+.figure span { font-size: 12.5px; color: var(--muted); }
+
+.hbars { display: grid; gap: 4px; padding: 16px 24px 20px; }
+.hrow { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr) 72px 44px; gap: 12px; align-items: center; padding: 3px 0; color: var(--ink); }
+.hrow .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.track { height: 9px; background: var(--row); border-radius: 2px; overflow: hidden; display: block; }
+.fill { height: 100%; background: var(--chart-line); display: block; }
+.fill.accent { background: var(--primary); }
+.hrow .num { text-align: right; white-space: nowrap; }
+.hrow .share-pct { text-align: right; color: var(--muted); }
+
+.table-wrap { overflow-x: auto; }
+.lw-table { width: 100%; border-collapse: collapse; font-size: 13px; color: var(--ink); }
+.lw-table thead th { background: var(--head); text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text); padding: 10px 12px; white-space: nowrap; }
+.lw-table thead th.estimated { color: var(--muted); font-style: italic; }
+.lw-table td { padding: 10px 12px; vertical-align: middle; }
+.lw-table tbody tr:nth-child(even) td { background: var(--band); }
+.lw-table tbody tr.group td { background: var(--card); font-weight: 600; padding-top: 14px; border-top: 1px solid var(--border); }
+.lw-table tbody tr.group:first-child td { border-top: 0; }
+.lw-table tbody tr.item td:first-child { padding-left: 22px; }
+.lw-table tfoot td { background: var(--head); font-weight: 600; color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; }
+.lw-table tfoot td.num { color: var(--text); text-transform: none; letter-spacing: 0; }
+.lw-table .num { text-align: right; white-space: nowrap; }
+.lw-table td.estimated { color: var(--muted); font-style: italic; }
+.lw-table td.action { text-align: right; width: 1%; white-space: nowrap; }
+.lw-table .muted { color: var(--muted); font-size: 12px; display: block; }
+.lw-table .mono { font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+.lw-table .desc { display: block; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.negative { color: var(--red); }
+.spark { display: block; }
+.rule-ref { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.rule-no { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 11px; font-weight: 600; flex: none; }
+
+.rules { display: grid; }
+.rule { display: grid; grid-template-columns: 28px minmax(0, 180px) minmax(0, 1fr); gap: 14px; padding: 13px 24px; border-bottom: 1px solid var(--row); align-items: start; }
+.rule:last-child { border-bottom: 0; }
+.rule .name { font-weight: 600; color: var(--ink); }
+.rule .text { color: var(--text); font-size: 12.5px; }
+
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter { border: 1px solid var(--input); background: var(--card); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
+.filter[aria-pressed="true"] { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+.timeline { padding: 6px 24px 10px; }
+.tl-item { display: grid; grid-template-columns: 84px 16px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding-block: 12px; border-bottom: 1px solid var(--row); color: var(--ink); }
+.tl-item:last-child { border-bottom: 0; }
+.tl-date { color: var(--muted); font-size: 12.5px; }
+.tl-item strong { font-weight: 600; display: block; }
+.tl-item .desc { color: var(--muted); font-size: 12.5px; }
+
+.modal-backdrop { position: fixed; inset: 0; z-index: 50; background: var(--overlay); display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.modal { background: var(--card); border-radius: 8px; width: min(1000px, 100%); max-height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; box-shadow: 0 20px 40px rgba(16, 24, 40, 0.2); overflow: hidden; }
+.modal-head { display: flex; justify-content: space-between; gap: 16px; padding: 18px 24px 14px; border-bottom: 1px solid var(--border); }
+.modal-head h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--ink); }
+.modal-head p { margin: 3px 0 0; font-size: 12.5px; color: var(--muted); }
+.modal-close { border: 1px solid var(--input); background: var(--card); border-radius: 4px; width: 30px; height: 30px; cursor: pointer; font-size: 16px; line-height: 1; flex: none; }
+.modal-body { overflow: auto; }
+.modal-foot { padding: 12px 24px; border-top: 1px solid var(--border); background: var(--band); font-size: 12.5px; display: flex; gap: 8px 24px; flex-wrap: wrap; justify-content: space-between; color: var(--muted); }
+.modal-foot b { color: var(--ink); }
+.check-ok { color: var(--green-ink); font-weight: 600; }
+.footer-note { color: var(--muted); font-size: 12px; padding-block: 0 28px; }
+
+.flags { display: flex; gap: 4px; flex-wrap: wrap; }
+.figure b.amber { color: var(--amber-ink); }
+.figure b.positive { color: var(--green-ink); }
+.lw-table .pattern { display: block; max-width: 300px; }
+.lw-table tbody tr.total-row td { font-weight: 600; background: var(--card); border-top: 2px solid var(--border); }
+.lw-table thead th .muted { font-size: 11px; }
+.excluded-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--row); align-items: center; color: var(--ink); }
+.excluded-row:last-child { border-bottom: 0; }
+.excluded-row b { font-weight: 600; }
+.excluded-row .why { display: block; color: var(--muted); font-size: 12.5px; }
+.lw-table td .muted { max-width: 280px; }
+.lw-table td.treatment { min-width: 240px; max-width: 340px; font-size: 12.5px; color: var(--text); }
+.lw-table.matrix td { vertical-align: top; min-width: 190px; font-size: 12.5px; color: var(--text); }
+.lw-table.matrix thead th.current { background: var(--navy); color: #ffffff; }
+.lw-table.matrix tbody tr td.current { background: var(--primary-tint); color: var(--ink); }
+.review-strip { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 12px 14px; align-items: center; padding: 16px 24px; }
+.review-strip.amber { background: var(--amber-bg); box-shadow: inset 0 0 0 1px var(--amber-line); }
+.review-strip.green { background: var(--green-bg); }
+.review-strip strong { display: block; color: var(--ink); font-weight: 600; font-size: 13.5px; }
+.review-strip span { color: var(--text); font-size: 12.5px; }
+.review-strip .icon { align-self: start; margin-top: 2px; }
+.decide { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.btn-decide { border: 1px solid var(--input); background: var(--card); border-radius: 4px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn-decide.yes { border-color: var(--green); color: var(--green-ink); }
+.btn-decide:hover { background: var(--band); }
+.lw-table td.reasons { font-size: 12.5px; color: var(--text); min-width: 220px; }
+.confidence-bars { display: grid; padding: 8px 24px 12px; }
+.confidence-row { display: grid; grid-template-columns: minmax(0, 170px) minmax(0, 1fr) 48px 104px; gap: 14px; align-items: center; padding: 10px 0; border: 0; border-bottom: 1px solid var(--row); background: none; text-align: left; cursor: pointer; color: var(--ink); }
+.confidence-row:last-child { border-bottom: 0; }
+.confidence-row .bar { position: relative; height: 10px; background: var(--row); border-radius: 3px; }
+.confidence-row .fill { position: absolute; inset: 0 auto 0 0; border-radius: 3px; }
+.confidence-row .fill.ok { background: var(--green); opacity: 0.7; }
+.confidence-row .fill.low { background: var(--amber-icon); }
+.confidence-row .mark { position: absolute; top: -4px; width: 2px; height: 18px; background: var(--ink); }
+.confidence-row .value { text-align: right; font-weight: 600; }
+@media (max-width: 560px) {
+  .confidence-row { grid-template-columns: minmax(0, 1fr) 48px; }
+  .confidence-row .bar { grid-column: 1 / -1; order: 3; }
+  .confidence-row .chip { display: none; }
+  .review-strip { grid-template-columns: 18px minmax(0, 1fr); }
+  .review-strip .btn-view { grid-column: 2; justify-self: start; }
+}
+@media (max-width: 960px) {
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tile:nth-child(2n) { border-right: 0; }
+  .tile:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
+  .grid-2 { grid-template-columns: 1fr; }
+  .figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .figure:nth-child(2n) { border-right: 0; }
+  .figure:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
+  .sc-head { display: none; }
+  .sc-row { grid-template-columns: 18px minmax(0, 1fr) auto 64px; }
+  .sc-basis, .sc-row .btn-view { display: none; }
+}
+@media (max-width: 720px) {
+  .tiles { grid-template-columns: 1fr; }
+  .tile { border-right: 0; border-bottom: 1px solid var(--border); }
+  .tile:last-child { border-bottom: 0; }
+}
+@media (max-width: 560px) {
+  .figures { grid-template-columns: 1fr; }
+  .figure { border-right: 0; border-bottom: 1px solid var(--border); }
+  .dossier { grid-template-columns: 1fr; }
+  .sc-row { grid-template-columns: 18px minmax(0, 1fr) 64px; }
+  .sc-value { grid-column: 2; text-align: left; order: 3; }
+  .hrow { grid-template-columns: minmax(0, 1fr) 64px 40px; }
+  .hrow .track { grid-column: 1 / -1; order: 4; }
+  .rule { grid-template-columns: 28px minmax(0, 1fr); }
+  .rule .text { grid-column: 2; }
+  .tl-item { grid-template-columns: 16px minmax(0, 1fr) auto; }
+  .tl-date { grid-column: 2 / -1; order: -1; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+
+<style>
+/* Light-aanvulling op de Loanwise-huisstijl: alleen wat de E1-uitvoer nodig heeft. */
+[hidden] { display: none !important; }
+.segment-wrap { flex-wrap: wrap; }
+.segment button:disabled { color: var(--muted); cursor: not-allowed; background: var(--band); }
+
+.cat-key { font-family: var(--mono); font-size: 11.5px; color: var(--muted); display: block; }
+.bucket { font-family: var(--mono); font-size: 11.5px; }
+.ask { display: grid; grid-template-columns: 28px minmax(0, 220px) minmax(0, 1fr); gap: 14px; padding: 13px 24px; border-bottom: 1px solid var(--row); align-items: start; }
+.ask:last-child { border-bottom: 0; }
+.ask .name { font-weight: 600; color: var(--ink); }
+.ask .text { color: var(--text); font-size: 12.5px; }
+.json { margin: 0; font-family: var(--mono); font-size: 12px; line-height: 1.55; color: var(--ink); background: var(--band); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; overflow-x: auto; white-space: pre; }
+.count-line { padding: 10px 24px; font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--border); }
+@media (max-width: 560px) {
+  .ask { grid-template-columns: 28px minmax(0, 1fr); }
+  .ask .text { grid-column: 2; }
+}
+</style>
+
+<div class="wrap page-head">
+  <div>
+    <div class="crumb">Dossiers · <span id="dataset-name">Voorbeelddossier</span> · Enable Now <code>/Transactions</code> + E1 (<span id="crumb-profile">corporate</span>)</div>
+    <h1>Overzicht onderneming <span class="chip outline">Light</span></h1>
+  </div>
+  <div class="segment-wrap">
+    <span class="chip outline" id="dataset-chip">Voorbeelddata</span>
+    <button type="button" class="btn-outline" id="load-button">Dataset laden</button>
+    <input type="file" id="load-input" accept=".json,.zip,application/json,application/zip" multiple hidden>
+    <span>Weergave</span>
+    <div class="segment" role="group" aria-label="Weergave" id="overlay-segment">
+      <button type="button" data-overlay="zakelijk" aria-pressed="true">Zakelijk</button>
+      <button type="button" data-overlay="prive" aria-pressed="false">Privé</button>
+      <button type="button" data-overlay="samen" aria-pressed="false">Samen</button>
+    </div>
+    <span>Interne transacties</span>
+    <div class="segment" role="group" aria-label="Interne transacties">
+      <button type="button" id="internal-include" aria-pressed="false">Inclusief</button>
+      <button type="button" id="internal-exclude" aria-pressed="true">Exclusief</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" id="load-banner" hidden></div>
+
+<nav class="tabbar" aria-label="Onderdelen van de analyse">
+  <div class="wrap"><div class="segment" role="tablist" id="tablist"></div></div>
+</nav>
+
+<main>
+  <div class="wrap">
+    <section class="panel" id="panel-overzicht" role="tabpanel"></section>
+    <section class="panel" id="panel-categorieen" role="tabpanel" hidden></section>
+    <section class="panel" id="panel-tegenpartijen" role="tabpanel" hidden></section>
+    <section class="panel" id="panel-verplichtingen" role="tabpanel" hidden></section>
+    <section class="panel" id="panel-signalen" role="tabpanel" hidden></section>
+    <section class="panel" id="panel-transacties" role="tabpanel" hidden></section>
+  </div>
+</main>
+<p class="wrap footer-note" id="footer-note">Light-ontwerp in Loanwise-huisstijl, alleen gebouwd op wat Enable Now levert: de transacties uit <code>GET /Transactions</code> met per transactie <code>category.e1</code> (<code>category</code>, <code>confidence</code>, <code>flags</code>) en de E1-analyse met profiel <code>corporate</code> (<code>generalInfo</code>, <code>companyInfo</code>, <code>topCounterparties</code>, <code>clientProfile</code>, <code>flaggedTransactions</code>, <code>lowConfidenceTransactions</code>, <code>otherHighlightedTransactions</code>). Maandbedragen zijn opgeteld uit de transacties via <code>transactionIds</code>. Alle bedragen en namen zijn voorbeeldwaarden.</p>
+
+<div class="modal-backdrop" id="modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <div><h3 id="modal-title"></h3><p id="modal-sub"></p></div>
+      <button type="button" class="modal-close" id="modal-close" aria-label="Sluiten">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot" id="modal-foot"></div>
+  </div>
+</div>
+
+<script>
+/* ---------- Opmaak ---------- */
+const CURRENCY = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+const CURRENCY_CENTS = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
+const eur = value => CURRENCY.format(Math.round(value) || 0).replace('-', '−');
+const eurCents = value => CURRENCY_CENTS.format(value).replace('-', '−');
+const k = value => `${value < 0 ? '−' : ''}€${(Math.abs(value) / 1000).toFixed(1).replace('.', ',')}k`;
+const pct = (value, digits = 0) => `${(value * 100).toFixed(digits).replace('.', ',')}%`;
+const signedPct = value => `${value > 0 ? '+' : value < 0 ? '−' : ''}${Math.abs(Math.round(value * 100))}%`;
+const esc = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+const dateNl = date => date.split('-').reverse().join('-');
+const sum = values => values.reduce((total, value) => total + value, 0);
+
+/* ---------- Periode ---------- */
+let PERIOD = { start: '2024-11-01', end: '2025-10-31' };
+let MONTH_KEYS = ['2024-11', '2024-12', '2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10'];
+let MONTH_LABELS = ['nov', 'dec', 'jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt'];
+const LAST_THREE = [9, 10, 11];
+const LAST_SIX = [6, 7, 8, 9, 10, 11];
+const SPARK_START = 7;
+let WINDOW_12 = 'nov 2024 – okt 2025';
+let WINDOW_3 = 'aug – okt 2025';
+const MONTH_SHORT = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+function setWindow(lastKey) {
+  let [year, month] = lastKey.split('-').map(Number);
+  const keys = [];
+  for (let i = 0; i < 12; i += 1) { keys.unshift(`${year}-${String(month).padStart(2, '0')}`); month -= 1; if (!month) { month = 12; year -= 1; } }
+  MONTH_KEYS = keys;
+  MONTH_LABELS = keys.map(key => MONTH_SHORT.at(Number(key.slice(5)) - 1));
+  const [lastYear, lastMonth] = keys.at(-1).split('-').map(Number);
+  PERIOD = { start: `${keys[0]}-01`, end: `${keys.at(-1)}-${String(new Date(lastYear, lastMonth, 0).getDate()).padStart(2, '0')}` };
+  const label = index => `${MONTH_LABELS.at(index)} ${keys.at(index).slice(0, 4)}`;
+  WINDOW_12 = `${label(0)} – ${label(11)}`;
+  WINDOW_3 = `${MONTH_LABELS[9]} – ${label(11)}`;
+}
+const monthIndex = row => MONTH_KEYS.indexOf(row.bookDate.slice(0, 7));
+
+/* ---------- Enable Now: request (POST /analysis-jobs) ---------- */
+const ACCOUNTS = [
+  { iban: 'NL20 RABO •••• ••35', accountName: 'Slager maatwerk interieur', accountId: '3f1c6e2a-8d47-4b19-a2c5-71e0d9b84a21', startBalance: -4520.15, via: 'hoofdrekening', role: 'zakelijk' },
+  { iban: 'NL41 RABO •••• ••82', accountName: 'Slager maatwerk interieur', accountId: '8b0e4f91-2c3a-4d8e-9f17-5a6b2e3d1c47', startBalance: 1240.0, via: 'ontvangstrekening; saldo gaat maandelijks naar NL20', role: 'zakelijk' },
+];
+const ANALYSIS_JOB = { engine: 'e1', profile: 'corporate', countryCode: 'nl', metadata: { kvk_number: '71234567', internal_ibans: ACCOUNTS.map(account => account.iban) } };
+
+/* ---------- Enable Now: companyInfo (alleen met kvk_number) ---------- */
+let COMPANY_INFO = {
+  kvkNumber: '71234567', name: 'Slager Maatwerk Interieur', address: 'Industrieweg 14, Deventer',
+  industryCode: '16230', industryDescription: 'Vervaardiging van timmerwerk voor de bouw',
+  legalForm: 'Eenmanszaak', numberOfEmployees: 2, startDate: '2016-03-01', registrationDate: '2016-03-14',
+};
+
+/* ---------- E1-taxonomie (corporate), alleen voor labels ---------- */
+const GROUPS = [
+  ['income', 'Inkomsten'], ['derived', 'Tussen zakelijk en privé'], ['expense', 'Kosten en uitgaven'], ['housing', 'Wonen'], ['office', 'Bedrijfspand'],
+  ['loan', 'Leningen, leases en incasso'], ['alimony', 'Alimentatie'], ['insurance', 'Verzekeringen'], ['tax', 'Belastingen'], ['subsidy', 'Subsidies en uitkeringen'],
+  ['cash', 'Contant'], ['investment', 'Beleggingen en sparen'], ['gambling', 'Gokken'], ['internal', 'Interne overboekingen'], ['other', 'Overig en niet te categoriseren'],
+];
+const GROUP_LABEL = Object.fromEntries(GROUPS);
+const CATEGORY_LABEL = {
+  'income.factoring': 'Factoring', 'income.dividend': 'Ontvangen dividend', 'income.rent': 'Huurinkomsten', 'income.interest': 'Rente-inkomsten', 'income.other': 'Klantbetalingen en overige omzet',
+  'expense.salary': 'Salarissen en vergoedingen', 'expense.pension': 'Pensioenpremies', 'expense.education': 'Opleiding en training', 'expense.representation': 'Representatie', 'expense.fines': 'Boetes',
+  'expense.legal': 'Juridische kosten', 'expense.accounting': 'Accountant en administratie', 'expense.marketing': 'Marketing', 'expense.it': 'IT en software', 'expense.dividend': 'Uitgekeerd dividend',
+  'expense.operations.utilities': 'Energie bedrijfspand', 'expense.operations.telecom': 'Telefoon en internet', 'expense.operations.office_supplies': 'Kantoorbenodigdheden', 'expense.operations.bank_fees': 'Bankkosten', 'expense.operations.other': 'Overige bedrijfsvoering',
+  'expense.transport.public_transport': 'Openbaar vervoer', 'expense.transport.fuel': 'Brandstof en laden', 'expense.transport.vehicle': 'Onderhoud voertuigen', 'expense.transport.parking': 'Parkeren', 'expense.transport.travel': 'Zakelijke reizen', 'expense.transport.other': 'Overig vervoer',
+  'expense.other': 'Overige bedrijfskosten (o.a. inkoop)',
+  'office.rent': 'Huur bedrijfsruimte', 'office.mortgage': 'Hypotheek bedrijfspand', 'office.other': 'Overige pandkosten',
+  'subsidy.other': 'Subsidies',
+  'loan.debt_collection': 'Deurwaarder en incasso', 'loan.flash': 'Flitskrediet', 'loan.bnpl': 'Achteraf betalen', 'loan.credit_card': 'Creditcard', 'loan.bank': 'Banklening', 'loan.vehicle_lease': 'Lease bedrijfsvoertuig', 'loan.equipment_lease': 'Lease bedrijfsmiddelen', 'loan.other': 'Overige leningen',
+  'insurance.vehicle': 'Voertuigverzekering', 'insurance.liability': 'Aansprakelijkheid', 'insurance.property': 'Opstal, inventaris en bedrijfsschade', 'insurance.legal': 'Rechtsbijstand', 'insurance.other': 'Overige verzekeringen',
+  'tax.vat': 'Omzetbelasting (btw)', 'tax.vehicle': 'Motorrijtuigenbelasting', 'tax.corporate': 'Vennootschapsbelasting', 'tax.payroll': 'Loonheffing', 'tax.social': 'Sociale premies', 'tax.dividend': 'Dividendbelasting', 'tax.other': 'Overige belastingen',
+  'cash.other': 'Contante transacties', 'gambling.lottery': 'Loterijen', 'gambling.other': 'Overig gokken',
+  'investment.savings': 'Sparen en deposito', 'investment.real_estate': 'Vastgoed', 'investment.participations': 'Deelnemingen', 'investment.crypto': 'Crypto', 'investment.other': 'Overige beleggingen',
+  'internal.other': 'Tussen eigen rekeningen', 'other.other': 'Niet betrouwbaar te categoriseren',
+  'derived.owner_transfer': 'Overboeking zakelijk ↔ privé (afgeleid)',
+  'income.salary': 'Salaris', 'income.pension.state': 'AOW', 'income.pension.private': 'Pensioen', 'income.pension.other': 'Overig pensioen',
+  'housing.rent': 'Huur woning', 'housing.mortgage': 'Hypotheek woning', 'housing.other': 'Overige woonlasten',
+  'subsidy.family': 'Kinderbijslag en kindregelingen', 'subsidy.family.income': 'Gezinsuitkering UWV', 'subsidy.health': 'Zorgtoeslag', 'subsidy.disability': 'Arbeidsongeschiktheid', 'subsidy.social': 'Bijstand',
+  'subsidy.social.other': 'Gemeentelijke steun', 'subsidy.rent': 'Huurtoeslag', 'subsidy.unemployment': 'WW-uitkering', 'subsidy.student': 'Studiefinanciering',
+  'loan.student': 'Studieschuld', 'loan.private': 'Lening tussen particulieren', 'alimony.other': 'Alimentatie',
+  'insurance.health': 'Zorgverzekering', 'insurance.life': 'Leven en uitvaart', 'tax.income': 'Inkomstenbelasting',
+  'investment.pension': 'Pensioenopbouw en lijfrente',
+  'expense.essential.groceries': 'Boodschappen', 'expense.essential.utilities.energy': 'Energie', 'expense.essential.utilities.water': 'Water', 'expense.essential.utilities.other': 'Overige nutsvoorzieningen',
+  'expense.essential.childcare': 'Kinderopvang', 'expense.essential.clothing': 'Kleding', 'expense.essential.medical': 'Medische kosten', 'expense.essential.personal_care': 'Persoonlijke verzorging',
+  'expense.essential.education': 'Onderwijs', 'expense.essential.financial': 'Bankkosten privé', 'expense.essential.telecom': 'Telefoon en internet', 'expense.essential.municipal': 'Gemeentelijke heffingen', 'expense.essential.other': 'Overige basisbehoeften',
+  'expense.lifestyle.restaurants_bars': 'Restaurants en cafés', 'expense.lifestyle.streaming': 'Streaming', 'expense.lifestyle.subscriptions': 'Abonnementen', 'expense.lifestyle.sports': 'Sport',
+  'expense.lifestyle.culture': 'Cultuur', 'expense.lifestyle.travel': 'Vakantie en reizen', 'expense.lifestyle.donations': 'Donaties', 'expense.lifestyle.pets': 'Huisdieren', 'expense.lifestyle.other': 'Overige vrije tijd',
+  'other.fines': 'Boetes', 'other.private_transfer': 'Overboekingen tussen particulieren', 'other.other': 'Niet betrouwbaar te categoriseren',
+};
+const categoryLabel = key => CATEGORY_LABEL[key] ?? key;
+const groupOf = key => key.split('.')[0];
+
+/* ---------- Voorbeeldtransacties (vorm: transactie + e1-object) ---------- */
+function seeded(seed) {
+  return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+const rand = seeded(20251031);
+const between = (low, high) => low + (high - low) * rand();
+const TX = [];
+let sequence = 0;
+function maskIban(name) {
+  const hash = [...name].reduce((total, character) => (total * 31 + character.charCodeAt(0)) % 9973, 7);
+  const bank = ['INGB', 'RABO', 'ABNA', 'KNAB', 'BUNQ', 'TRIO'][hash % 6];
+  return `NL${String(hash % 89 + 10)} ${bank} •••• ••${String(hash % 90 + 10)}`;
+}
+function add(month, day, account, amount, name, description, category, confidence, flags = [], iban = null) {
+  const [year, mon] = MONTH_KEYS[month].split('-').map(Number);
+  const lastDay = new Date(year, mon, 0).getDate();
+  sequence += 1;
+  const bookDate = `${MONTH_KEYS[month]}-${String(Math.min(day, lastDay)).padStart(2, '0')}`;
+  const hex = n => (n * 2654435761 >>> 0).toString(16).padStart(8, '0');
+  TX.push({
+    id: `${hex(sequence)}-${hex(sequence + 7).slice(0, 4)}-4${hex(sequence + 3).slice(0, 3)}-a${hex(sequence + 5).slice(0, 3)}-${hex(sequence + 11)}${hex(sequence).slice(0, 4)}`,
+    accountId: ACCOUNTS[account].accountId,
+    accountNumber: ACCOUNTS[account].iban,
+    description,
+    bookDate,
+    transactionDateTime: `${bookDate}T${String(7 + sequence % 12).padStart(2, '0')}:${String(sequence * 7 % 60).padStart(2, '0')}:00Z`,
+    amount: Math.round(amount * 100) / 100,
+    balanceAfterTransaction: null,
+    currency: 'EUR',
+    counterpartDescription: name,
+    counterpartAccountNumber: iban ?? (name ? maskIban(name) : null),
+    normalized: { description: description.toLowerCase().replace(/\s+/g, ' ').trim(), counterpartDescription: name ? name.toLowerCase().replace(/[.,]/g, '').trim() : null },
+    category: { e1: { category, confidence: Math.round(confidence * 100) / 100, flags, model: { version: 'e1-2026.10', profile: 'corporate', countryCode: 'nl' } } },
+  });
+}
+
+const FACTORS = [1.05, 0.9, 0.75, 0.85, 1.0, 1.05, 1.1, 1.0, 0.8, 0.9, 0.78, 0.7];
+const CUSTOMERS = [
+  ['Bouwbedrijf Hendriks B.V.', 5200, 3, 'Factuur'], ['Keukenstudio Oost B.V.', 3800, 3, 'Factuur'], ['Van Dijk Projectinrichting B.V.', 6400, 2, 'Termijn'],
+  ['Interieurbouw Meijer V.O.F.', 2400, 2, 'Factuur'], ['Hotel De Zwaan B.V.', 4800, 1, 'Factuur'], ['J. Bos eo M. Bos-de Jong', 3600, 2, 'Aanbetaling keuken'],
+  ['P. Mulder', 1900, 2, 'Kast slaapkamer'], ['R. Visser eo S. Visser', 2700, 2, 'Termijn badkamermeubel'], ['Tandartspraktijk Smit', 3100, 1, 'Factuur'],
+  ['Kinderopvang Het Nest B.V.', 2200, 1, 'Factuur'], ['A. Kok eo A. Kok-Slager', 1500, 1, 'Kast'], ['T. Bakker', 1200, 2, 'Factuur'],
+];
+const CUSTOMER_POOL = CUSTOMERS.flatMap(customer => Array(customer[2]).fill(customer));
+const SUPPLIERS = [
+  ['Houthandel De Vries B.V.', 2600], ['Plaatmateriaal Noord B.V.', 1900], ['IJzerwaren Brabant B.V.', 420], ['Bouwcenter Kuipers B.V.', 780],
+  ['Lakfabriek Vos B.V.', 650], ['Keukenapparatuur Groothandel B.V.', 3200], ['Steenhouwerij Jansen', 1900],
+];
+const LEGAL = /\b(B\.V\.|V\.O\.F\.|N\.V\.)/;
+
+MONTH_KEYS.forEach((key, m) => {
+  const factor = FACTORS[m];
+  const label = MONTH_LABELS[m];
+  let secondAccount = 0;
+  const customerCount = 7 + Math.floor(rand() * 5);
+  for (let i = 0; i < customerCount; i += 1) {
+    const [name, base, , kind] = CUSTOMER_POOL[Math.floor(rand() * CUSTOMER_POOL.length)];
+    const amount = base * factor * between(0.6, 1.35);
+    const account = rand() < 0.3 ? 1 : 0;
+    if (account === 1) secondAccount += Math.round(amount * 100) / 100;
+    const description = kind === 'Factuur' || kind === 'Termijn' ? `${kind} ${key.slice(0, 4)}${String(100 + m * 13 + i).padStart(4, '0')}` : kind;
+    add(m, 2 + Math.floor(rand() * 26), account, amount, name, description, 'income.other', LEGAL.test(name) ? between(0.88, 0.97) : between(0.72, 0.87));
+  }
+  if (secondAccount) {
+    add(m, 28, 1, -secondAccount, 'Slager maatwerk interieur', 'Overboeking naar hoofdrekening', 'internal.other', 1, [], ACCOUNTS[0].iban);
+    add(m, 28, 0, secondAccount, 'Slager maatwerk interieur', 'Overboeking van ontvangstrekening', 'internal.other', 1, [], ACCOUNTS[1].iban);
+  }
+  const supplierCount = 5 + Math.floor(rand() * 3);
+  for (let i = 0; i < supplierCount; i += 1) {
+    const [name, base] = SUPPLIERS[Math.floor(rand() * SUPPLIERS.length)];
+    add(m, 3 + Math.floor(rand() * 25), 0, -base * 1.75 * factor * between(0.55, 1.4), name, `Factuur ${4400 + m * 17 + i}`, 'expense.other', between(0.74, 0.92));
+  }
+  add(m, 1, 0, -1450, 'Bedrijfshal Vastgoed Oost B.V.', `Huur werkplaats ${label}`, 'office.rent', 0.96);
+  add(m, 1, 0, -32.4, 'Rabobank', 'Kosten Rabo BedrijfsPakket', 'expense.operations.bank_fees', 0.99, [], 'NL·· RABO bank');
+  add(m, 1, 1, -14.2, 'Rabobank', 'Kosten Rabo BedrijfsPakket', 'expense.operations.bank_fees', 0.99, [], 'NL·· RABO bank');
+  add(m, 1, 0, -128.4, 'Zakelijk Verzekerd B.V.', 'Premie AVB polis 50-11829', 'insurance.liability', 0.9);
+  add(m, 1, 0, -96.1, 'Zakelijk Verzekerd B.V.', 'Premie bedrijfsauto polis 50-11830', 'insurance.vehicle', 0.92);
+  add(m, 2, 0, -689.2, 'Bedrijfswagen Lease B.V.', `Leasetermijn VW Crafter ${label}`, 'loan.vehicle_lease', 0.96);
+  add(m, 3, 0, -412, 'Machinefinance Nederland B.V.', 'Lease CNC-freesmachine contract 4471', 'loan.equipment_lease', 0.94);
+  add(m, 5, 0, -29, 'Boekhoudapp Online B.V.', 'Abonnement boekhouding', 'expense.it', 0.9);
+  add(m, 9, 0, -65, 'Vakmanplatform B.V.', 'Advertentiepakket', 'expense.marketing', 0.82);
+  add(m, 12, 0, -312.4, 'Stroomwerk Energie B.V.', 'Termijn energie werkplaats', 'expense.operations.utilities', 0.91);
+  add(m, 20, 0, -84.5, 'Telecom Zakelijk B.V.', 'Zakelijk abonnement', 'expense.operations.telecom', 0.95);
+  add(m, 24, 0, -410, 'Belastingdienst', `Voorlopige aanslag IB ${key.slice(0, 4)}`, 'tax.other', 0.88, [], 'NL86 INGB 0002 4455 88');
+  add(m, 25, 0, -2640.18, 'J. de Wit', `Salaris ${label}`, 'expense.salary', 0.93);
+  add(m, 26, 0, m === 9 ? -2200 : -1800, 'K. Slager', 'Prive', 'other.other', 0.55);
+  add(m, 28, 0, -834, 'Belastingdienst', 'Betalingskenmerk loonheffing', 'tax.payroll', 0.97, [], 'NL86 INGB 0002 4455 88');
+  add(m, 30, 0, -520, 'Rabobank', 'Aflossing en rente lening 30.12.448', 'loan.bank', 0.95, [], 'NL·· RABO bank');
+  for (let i = 0; i < 2 + Math.floor(rand() * 2); i += 1) add(m, 4 + Math.floor(rand() * 24), 0, -between(60, 120), 'Tankpunt A1 Deventer', 'Betaalautomaat', 'expense.transport.fuel', 0.93);
+  if (m >= 3) add(m, 27, 0, -164.25, 'Gemeente Deventer', 'Aanslag gemeentelijke belastingen 2025', 'tax.other', 0.9);
+  if (m >= 5) add(m, 24, 0, -350, 'Belastingdienst', 'Betalingsregeling 1084 1123 0457', 'tax.other', 0.78, ['payment_arrangement'], 'NL86 INGB 0002 4455 88');
+  if ([1, 4, 7, 10].includes(m)) add(m, 15, 0, -395, 'Administratiekantoor Bakker', 'Factuur administratie kwartaal', 'expense.accounting', 0.89);
+});
+add(2, 31, 0, -3850, 'Belastingdienst', 'Omzetbelasting Q4 2024', 'tax.vat', 0.97, [], 'NL86 INGB 0002 4455 88');
+add(5, 30, 0, -2140, 'Belastingdienst', 'Omzetbelasting Q1 2025', 'tax.vat', 0.97, [], 'NL86 INGB 0002 4455 88');
+add(8, 31, 0, -1200, 'Belastingdienst', 'Omzetbelasting Q2 2025', 'tax.vat', 0.97, [], 'NL86 INGB 0002 4455 88');
+add(3, 10, 0, 10000, 'K. Slager', 'Storting eigen geld', 'other.other', 0.48);
+add(4, 17, 0, 2350, null, 'Overboeking', 'income.other', 0.44);
+add(6, 19, 0, -1450, 'Online Veilinghuis', 'Kavel 2231 werkbank', 'expense.other', 0.47);
+add(7, 14, 0, 186.35, 'Lakfabriek Vos B.V.', 'Retour bestelling 8812', 'expense.other', 0.84, ['refund']);
+add(8, 11, 0, 85, 'M. de Graaf', 'Tikkie materiaal', 'income.other', 0.69, ['payment_request']);
+add(2, 14, 0, -200, 'Geldautomaat Deventer', 'Geldopname', 'cash.other', 0.98, [], 'NL·· geldautomaat');
+add(7, 9, 0, -150, 'Geldautomaat Deventer', 'Geldopname', 'cash.other', 0.98, [], 'NL·· geldautomaat');
+add(9, 6, 0, 689.2, 'Bedrijfswagen Lease B.V.', 'Terugboeking incasso: onvoldoende saldo', 'loan.vehicle_lease', 0.93, ['reversal_payment']);
+add(9, 18, 0, -689.2, 'Bedrijfswagen Lease B.V.', 'Leasetermijn VW Crafter sep (herhaald)', 'loan.vehicle_lease', 0.95);
+add(11, 6, 0, 689.2, 'Bedrijfswagen Lease B.V.', 'Terugboeking incasso: onvoldoende saldo', 'loan.vehicle_lease', 0.93, ['reversal_payment']);
+add(9, 21, 0, -486.3, 'Gerechtsdeurwaarders Van Dam', 'Dossier 25-11873', 'loan.debt_collection', 0.94);
+add(11, 8, 0, -212, 'Incassobureau Noord B.V.', 'Vordering 88213', 'loan.debt_collection', 0.91);
+add(11, 22, 0, -486.3, 'Gerechtsdeurwaarders Van Dam', 'Dossier 25-11873', 'loan.debt_collection', 0.94);
+TX.sort((first, second) => first.bookDate.localeCompare(second.bookDate) || first.id.localeCompare(second.id));
+/* balanceAfterTransaction per rekening, zoals de bank het meelevert */
+ACCOUNTS.forEach(account => {
+  let balance = account.startBalance;
+  TX.filter(row => row.accountNumber === account.iban).forEach(row => { balance = Math.round((balance + row.amount) * 100) / 100; row.balanceAfterTransaction = balance; });
+});
+
+/* ---------- Weergave: zakelijk, privé of samen ---------- */
+let overlay = 'zakelijk';
+const ROLE_LABEL = { zakelijk: 'Zakelijk', prive: 'Privé' };
+const OVERLAY_PROFILE = { zakelijk: 'corporate', prive: 'retail', samen: 'corporate + retail' };
+const raw = row => row.category.e1.category;
+const roleOf = iban => ACCOUNTS.find(account => account.iban === iban)?.role ?? null;
+const hasRole = role => ACCOUNTS.some(account => account.role === role);
+const inOverlay = row => overlay === 'samen' || roleOf(row.accountNumber) === overlay;
+const overlayAccounts = () => ACCOUNTS.filter(account => overlay === 'samen' || account.role === overlay);
+const crossOverlay = row => raw(row) === 'internal.other' && overlay !== 'samen' && !!roleOf(row.counterpartAccountNumber) && roleOf(row.counterpartAccountNumber) !== roleOf(row.accountNumber);
+const cat = row => crossOverlay(row) ? 'derived.owner_transfer' : raw(row);
+const scope = () => TX.filter(inOverlay);
+
+/* ---------- Afgeleide cijfers ---------- */
+let includeInternal = false;
+const isInternal = row => cat(row) === 'internal.other';
+const active = () => scope().filter(row => includeInternal || !isInternal(row));
+const inflow = rows => sum(rows.filter(row => row.amount > 0).map(row => row.amount));
+const outflow = rows => sum(rows.filter(row => row.amount < 0).map(row => -row.amount));
+const byMonth = (rows, fn) => MONTH_KEYS.map((key, index) => fn(rows.filter(row => monthIndex(row) === index)));
+const ofCategory = (rows, test) => rows.filter(row => test(cat(row)));
+const inLast = (rows, indexes) => rows.filter(row => indexes.includes(monthIndex(row)));
+
+function profileEntry(name, rows) {
+  return { name, transactionCount: rows.length, totalInflow: inflow(rows), totalOutflow: outflow(rows), categories: [...new Set(rows.map(row => cat(row)))], transactionIds: rows.map(row => row.id) };
+}
+let GENERAL_INFO = null;
+let RECEIVED_BY = {};
+const received = () => overlay === 'samen' ? null : RECEIVED_BY[OVERLAY_PROFILE[overlay]] ?? null;
+function computeGeneralInfo() {
+  GENERAL_INFO = {
+    startDate: PERIOD.start, endDate: PERIOD.end,
+    startBalance: sum(overlayAccounts().map(account => account.startBalance)),
+    endBalance: sum(overlayAccounts().map(account => account.startBalance)) + sum(scope().map(row => row.amount)),
+    accounts: overlayAccounts().map(({ iban, accountName, accountId }) => ({ iban, accountName, accountId })),
+    totalInflow: inflow(scope()), totalOutflow: outflow(scope()),
+  };
+}
+computeGeneralInfo();
+
+/* Buckets exact volgens de E1-analyse; clientProfile verschilt per profiel */
+const LEASES = ['loan.debt_collection', 'loan.vehicle_lease', 'loan.equipment_lease'];
+const startsWith = prefix => row => raw(row).startsWith(prefix);
+const isKey = (...keys) => row => keys.includes(raw(row));
+const CLIENT_CORPORATE = [
+  { name: 'Taxes', nl: 'Belastingen', rule: 'tax.*', test: startsWith('tax.') },
+  { name: 'Loans', nl: 'Leningen', rule: 'loan.* behalve incasso en leases', test: row => raw(row).startsWith('loan.') && !LEASES.includes(raw(row)) },
+  { name: 'Debt collection', nl: 'Deurwaarders en incasso', rule: 'loan.debt_collection', test: isKey('loan.debt_collection') },
+  { name: 'Vehicle Lease', nl: 'Lease bedrijfsvoertuigen', rule: 'loan.vehicle_lease', test: isKey('loan.vehicle_lease') },
+  { name: 'Equipment Lease', nl: 'Lease bedrijfsmiddelen', rule: 'loan.equipment_lease', test: isKey('loan.equipment_lease') },
+  { name: 'Internal transactions', nl: 'Interne overboekingen', rule: 'internal.other', test: isKey('internal.other') },
+  { name: 'Gambling', nl: 'Gokken', rule: 'gambling.*', test: startsWith('gambling.') },
+  { name: 'Crypto', nl: 'Crypto', rule: 'investment.crypto', test: isKey('investment.crypto') },
+];
+const CLIENT_RETAIL = [
+  { name: 'Internal transactions', nl: 'Interne overboekingen', rule: 'internal.other', test: isKey('internal.other') },
+  { name: 'Car', nl: 'Auto', rule: 'tax.vehicle, transport.vehicle/fuel/parking, insurance.vehicle', test: isKey('tax.vehicle', 'expense.transport.vehicle', 'insurance.vehicle', 'expense.transport.fuel', 'expense.transport.parking') },
+  { name: 'Child', nl: 'Kinderen', rule: 'essential.childcare, subsidy.family', test: isKey('expense.essential.childcare', 'subsidy.family') },
+  { name: 'Divorced', nl: 'Alimentatie', rule: 'alimony.*', test: startsWith('alimony.') },
+  { name: 'Pension', nl: 'Pensioen', rule: 'income.pension.*', test: startsWith('income.pension.') },
+  { name: 'Unemployed', nl: 'Werkloosheid', rule: 'subsidy.unemployment', test: isKey('subsidy.unemployment') },
+  { name: 'Loans', nl: 'Leningen', rule: 'loan.* behalve incasso', test: row => raw(row).startsWith('loan.') && raw(row) !== 'loan.debt_collection' },
+  { name: 'Debt collection', nl: 'Deurwaarders en incasso', rule: 'loan.debt_collection', test: isKey('loan.debt_collection') },
+  { name: 'Salary', nl: 'Salaris', rule: 'income.salary', test: isKey('income.salary') },
+  { name: 'Housing', nl: 'Wonen', rule: 'housing.rent/mortgage/other', test: startsWith('housing.') },
+  { name: 'Other benefits', nl: 'Overige uitkeringen', rule: 'subsidy.* behalve WW en gezin', test: row => raw(row).startsWith('subsidy.') && !['subsidy.unemployment', 'subsidy.family', 'subsidy.family.income'].includes(raw(row)) },
+  { name: 'Fines', nl: 'Boetes', rule: 'other.fines', test: isKey('other.fines') },
+  { name: 'Gambling', nl: 'Gokken', rule: 'gambling.*', test: startsWith('gambling.') },
+  { name: 'Crypto', nl: 'Crypto', rule: 'investment.crypto', test: isKey('investment.crypto') },
+];
+const BUCKETS_COMMON = {
+  flaggedTransactions: [
+    { name: 'Reversal payments', nl: 'Terugboekingen door de bank', rule: 'flag reversal_payment', test: row => row.category.e1.flags.includes('reversal_payment') },
+    { name: 'Refunds', nl: 'Terugbetalingen', rule: 'flag refund', test: row => row.category.e1.flags.includes('refund') },
+    { name: 'Payment arrangements', nl: 'Betalingsregelingen', rule: 'flag payment_arrangement', test: row => row.category.e1.flags.includes('payment_arrangement') },
+  ],
+  lowConfidenceTransactions: [
+    { name: 'Confidence <50%', nl: 'Zekerheid onder 50%', rule: 'confidence < 0,50', test: row => row.category.e1.confidence < 0.5 },
+    { name: '50% <= Confidence <60%', nl: 'Zekerheid 50–60%', rule: '0,50 ≤ confidence < 0,60', test: row => row.category.e1.confidence >= 0.5 && row.category.e1.confidence < 0.6 },
+  ],
+  otherHighlightedTransactions: [
+    { name: 'Round number', nl: 'Ronde bedragen', rule: '|amount| ≥ 10.000, veelvoud van 10.000', test: row => Math.abs(row.amount) >= 10000 && Number.isInteger(row.amount) && Math.abs(row.amount) % 10000 === 0 },
+  ],
+};
+let BUCKETS = { clientProfile: CLIENT_CORPORATE, ...BUCKETS_COMMON };
+function setBuckets() {
+  const client = overlay === 'zakelijk' ? CLIENT_CORPORATE : overlay === 'prive' ? CLIENT_RETAIL
+    : [...CLIENT_CORPORATE, ...CLIENT_RETAIL.filter(entry => !CLIENT_CORPORATE.some(other => other.name === entry.name))];
+  BUCKETS = { clientProfile: client, ...BUCKETS_COMMON };
+}
+const bucket = (section, name) => BUCKETS[section].find(entry => entry.name === name);
+const hasBucket = (section, name) => !!bucket(section, name);
+const bucketRows = (section, name, rows = scope()) => hasBucket(section, name) ? rows.filter(bucket(section, name).test) : [];
+
+/* ---------- Iconen en kleine bouwstenen ---------- */
+const ICON = {
+  good: '<svg class="icon" viewBox="0 0 16 16" aria-label="Goed"><circle cx="8" cy="8" r="6.5" fill="none" stroke="var(--green-icon)" stroke-width="1.4"/><path d="M5.2 8.2l1.9 1.9 3.7-3.9" fill="none" stroke="var(--green-icon)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  warn: '<svg class="icon" viewBox="0 0 16 16" aria-label="Matig"><circle cx="8" cy="8" r="6.5" fill="none" stroke="var(--amber-icon)" stroke-width="1.4"/><path d="M8 4.6v4.2" stroke="var(--amber-icon)" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="11.1" r="0.95" fill="var(--amber-icon)"/></svg>',
+  bad: '<svg class="icon" viewBox="0 0 16 16" aria-label="Slecht"><circle cx="8" cy="8" r="6.5" fill="none" stroke="var(--red-icon)" stroke-width="1.4"/><path d="M5.8 5.8l4.4 4.4M10.2 5.8l-4.4 4.4" stroke="var(--red-icon)" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  info: '<svg class="icon" viewBox="0 0 16 16" aria-label="Info"><circle cx="8" cy="8" r="6.5" fill="none" stroke="var(--blue-icon)" stroke-width="1.4"/><path d="M8 7.2v4.2" stroke="var(--blue-icon)" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.9" r="0.95" fill="var(--blue-icon)"/></svg>',
+  alert: '<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="var(--amber-icon)"/><path d="M8 4.4v4.4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="11.2" r="1" fill="#fff"/></svg>',
+  eye: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8 12.1 12.5 8 12.5 1.5 8 1.5 8z" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg>',
+};
+const VERDICT_LABEL = { good: 'Goed', warn: 'Matig', bad: 'Slecht', info: 'Info' };
+const chip = verdict => `<span class="chip ${verdict === 'info' ? '' : verdict}">${VERDICT_LABEL[verdict]}</span>`;
+const goButton = tab => `<button type="button" class="btn-view" data-go="${tab}">${ICON.eye}bekijken</button>`;
+const bucketButton = (section, name) => `<button type="button" class="btn-view" data-bucket="${section}" data-key="${esc(name)}">${ICON.eye}bekijken</button>`;
+const categoryButton = key => `<button type="button" class="btn-view" data-category="${esc(key)}">${ICON.eye}bekijken</button>`;
+const confidenceTone = value => value >= 0.8 ? 'good' : value >= 0.6 ? '' : value >= 0.5 ? 'warn' : 'bad';
+const confidenceChip = value => `<span class="chip ${confidenceTone(value)}">${Math.round(value * 100)}%</span>`;
+const flagChips = flags => flags.length ? `<span class="flags">${flags.map(flag => `<span class="chip outline">${flag}</span>`).join('')}</span>` : '<span class="muted">—</span>';
+
+function tile(label, value, unit, sub, formulaLines) {
+  return `<div class="tile"><span class="tile-label">${label}</span><span class="tile-value">${value}<small>${unit}</small></span><span class="tile-sub">${sub}</span><details class="how"><summary>Hoe berekend</summary><div class="formula">${formulaLines.map(line => `<span>${line}</span>`).join('')}</div></details></div>`;
+}
+function sparkBars(values) {
+  const maximum = Math.max(...values, 1);
+  const bars = values.map((value, index) => {
+    const height = value / maximum * 18;
+    const fill = index === values.length - 1 ? 'var(--primary)' : 'var(--chart-line)';
+    return `<rect x="${index * 12}" y="${20 - height}" width="8" height="${Math.max(height, value ? 1 : 0)}" rx="1" fill="${fill}"><title>${MONTH_LABELS[SPARK_START + index]}: ${eur(value)}</title></rect><rect x="${index * 12}" y="20" width="8" height="1" fill="var(--input)"/>`;
+  }).join('');
+  return `<svg class="spark" width="56" height="22" viewBox="0 0 56 22" role="img" aria-label="Verloop ${MONTH_LABELS[SPARK_START]} tot ${MONTH_LABELS[11]}">${bars}</svg>`;
+}
+
+/* ---------- Venster met transacties en controle-som ---------- */
+function openModal(title, sub, bodyHtml, footHtml) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-sub').textContent = sub;
+  document.getElementById('modal-body').innerHTML = bodyHtml;
+  document.getElementById('modal-foot').innerHTML = footHtml;
+  document.getElementById('modal').hidden = false;
+  document.getElementById('modal-close').focus();
+}
+function closeModal() { document.getElementById('modal').hidden = true; }
+
+function transactionTable(rows) {
+  const sorted = [...rows].sort((first, second) => second.bookDate.localeCompare(first.bookDate));
+  if (!sorted.length) return '<div class="card-body"><span class="muted">Geen transacties in deze selectie.</span></div>';
+  return `<div class="table-wrap"><table class="lw-table">
+    <thead><tr><th>bookDate</th><th>accountNumber</th><th>counterpartDescription</th><th>description</th><th class="num">amount</th><th>category.e1.category</th><th class="num">confidence</th><th>flags</th></tr></thead>
+    <tbody>${sorted.map(row => `<tr>
+      <td class="mono">${row.bookDate}</td>
+      <td class="mono">${esc(row.accountNumber.slice(0, 4))}</td>
+      <td>${row.counterpartDescription === null ? '<span class="muted">null</span>' : esc(row.counterpartDescription)}<span class="muted mono">${esc(row.counterpartAccountNumber ?? 'null')}</span></td>
+      <td><span class="desc" title="${esc(row.description)}">${esc(row.description)}</span></td>
+      <td class="num ${row.amount < 0 ? 'negative' : ''}">${eurCents(row.amount)}</td>
+      <td><code>${raw(row)}</code>${crossOverlay(row) ? '<span class="muted">zakelijk ↔ privé</span>' : ''}${row.category.e1.model?.profile ? `<span class="muted">${row.category.e1.model.profile}</span>` : ''}</td>
+      <td class="num">${confidenceChip(row.category.e1.confidence)}</td>
+      <td>${flagChips(row.category.e1.flags)}</td></tr>`).join('')}</tbody></table></div>`;
+}
+function checksum(rows, expected) {
+  const entry = profileEntry('', rows);
+  const ok = !expected || (Math.abs(entry.totalInflow - expected.totalInflow) < 0.01 && Math.abs(entry.totalOutflow - expected.totalOutflow) < 0.01 && entry.transactionCount === expected.transactionCount);
+  return `<span><b>${entry.transactionCount}</b> transacties · instroom <b>${eurCents(entry.totalInflow)}</b> · uitstroom <b>${eurCents(entry.totalOutflow)}</b> · netto <b>${eurCents(entry.totalInflow - entry.totalOutflow)}</b></span>${expected ? `<span class="${ok ? 'check-ok' : 'negative'}">${ok ? '✓ sluit aan op ProfileEntry' : '✕ wijkt af van ProfileEntry'}</span>` : ''}`;
+}
+function showBucket(section, name) {
+  const definition = bucket(section, name);
+  const rows = bucketRows(section, name);
+  openModal(`${definition.nl}`, `${section} → “${name}” · ${definition.rule} · ${WINDOW_12}`, transactionTable(rows), checksum(rows, profileEntry(name, rows)));
+}
+function showCategory(key) {
+  const rows = key.endsWith('*') ? active().filter(row => cat(row).startsWith(key.slice(0, -1))) : active().filter(row => cat(row) === key);
+  openModal(key.endsWith('*') ? GROUP_LABEL[key.slice(0, -2)] : categoryLabel(key), `category.e1.category = ${key} · ${WINDOW_12}${includeInternal ? '' : ' · exclusief interne transacties'}`, transactionTable(rows), checksum(rows));
+}
+function showCounterparty(name, side) {
+  const rows = active().filter(row => (row.counterpartDescription ?? 'Unknown') === name && (side === 'inflow' ? row.amount > 0 : row.amount < 0));
+  openModal(name, `topCounterparties.${side} · ${WINDOW_12}`, transactionTable(rows), checksum(rows));
+}
+
+/* ---------- Grafieken ---------- */
+function niceStep(range) { const raw = range / 5; const power = 10 ** Math.floor(Math.log10(raw)); return [1, 2, 2.5, 5, 10].map(m => m * power).find(step => step >= raw); }
+function inOutChart() {
+  const rows = active();
+  const ins = byMonth(rows, inflow), outs = byMonth(rows, outflow);
+  const net = ins.map((value, index) => value - outs[index]);
+  const step = niceStep(Math.max(...ins, ...outs) * 2);
+  const maximum = Math.ceil(Math.max(...ins) / step) * step, minimum = -Math.ceil(Math.max(...outs) / step) * step;
+  const width = 960, height = 300, left = 64, right = 16, top = 20, bottom = 30;
+  const band = (width - left - right) / 12, barWidth = 26;
+  const x = index => left + band * index + band / 2;
+  const y = value => top + (maximum - value) / (maximum - minimum) * (height - top - bottom);
+  let svg = `<svg class="chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Instroom, uitstroom en netto per maand over 12 maanden">`;
+  svg += `<rect x="${x(9) - band / 2}" y="${top}" width="${band * 3}" height="${height - top - bottom}" fill="var(--chart-fill)"/><text x="${x(10)}" y="${top + 12}" text-anchor="middle" class="t-quiet">laatste 3 mnd</text>`;
+  for (let tick = minimum; tick <= maximum + 1; tick += step) svg += `<line x1="${left}" x2="${width - right}" y1="${y(tick)}" y2="${y(tick)}" stroke="${tick === 0 ? 'var(--chart-soft)' : 'var(--grid)'}"/><text x="${left - 8}" y="${y(tick) + 4}" text-anchor="end" class="t-quiet">${tick ? k(tick) : '€ 0'}</text>`;
+  MONTH_KEYS.forEach((key, index) => {
+    svg += `<rect x="${x(index) - barWidth / 2}" y="${y(ins[index])}" width="${barWidth}" height="${y(0) - y(ins[index])}" rx="2" fill="var(--chart-line)"><title>${MONTH_LABELS[index]} · instroom ${eur(ins[index])}</title></rect>`;
+    svg += `<rect x="${x(index) - barWidth / 2}" y="${y(0)}" width="${barWidth}" height="${y(-outs[index]) - y(0)}" rx="2" fill="var(--chart-soft)"><title>${MONTH_LABELS[index]} · uitstroom ${eur(outs[index])}</title></rect>`;
+  });
+  svg += `<path d="${net.map((value, index) => `${index ? 'L' : 'M'}${x(index)} ${y(value)}`).join('')}" fill="none" stroke="var(--primary)" stroke-width="2"/>`;
+  net.forEach((value, index) => {
+    svg += `<circle cx="${x(index)}" cy="${y(value)}" r="4" fill="#fff" stroke="var(--primary)" stroke-width="2"><title>${MONTH_LABELS[index]} · netto ${eur(value)}</title></circle>`;
+    if (LAST_THREE.includes(index)) svg += `<text x="${x(index)}" y="${y(value) - 10}" text-anchor="middle" class="t-strong">${k(value)}</text>`;
+  });
+  svg += MONTH_KEYS.map((key, index) => `<text x="${x(index)}" y="${height - 8}" text-anchor="middle" class="t-ink">${MONTH_LABELS[index]}</text>`).join('');
+  return svg + '</svg>';
+}
+function balancePoints() {
+  let balance = GENERAL_INFO.startBalance;
+  const daily = new Map([[PERIOD.start, balance]]);
+  scope().forEach(row => { balance += row.amount; daily.set(row.bookDate, balance); });
+  return [...daily.entries()];
+}
+function balanceChart() {
+  const points = balancePoints();
+  const values = points.map(([, value]) => value);
+  const step = niceStep(Math.max(...values) - Math.min(...values, 0));
+  const maximum = Math.ceil(Math.max(...values, 0) / step) * step, minimum = Math.floor(Math.min(...values, 0) / step) * step;
+  const width = 960, height = 250, left = 72, right = 16, top = 14, bottom = 30;
+  const start = Date.parse(PERIOD.start), end = Date.parse(PERIOD.end);
+  const x = date => left + (Date.parse(date) - start) / (end - start) * (width - left - right);
+  const y = value => top + (maximum - value) / (maximum - minimum) * (height - top - bottom);
+  const line = points.map(([date, value], index) => `${index ? 'L' : 'M'}${x(date).toFixed(1)} ${y(value).toFixed(1)}`).join('');
+  const area = `${line}L${x(points.at(-1)[0]).toFixed(1)} ${y(0)}L${x(points[0][0]).toFixed(1)} ${y(0)}Z`;
+  let svg = `<svg class="chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Banksaldo beide rekeningen samen over 12 maanden"><defs><clipPath id="below-balance"><rect x="0" y="${y(0)}" width="${width}" height="${height}"/></clipPath></defs>`;
+  for (let tick = minimum; tick <= maximum + 1; tick += step) svg += `<line x1="${left}" x2="${width - right}" y1="${y(tick)}" y2="${y(tick)}" stroke="var(--grid)"/><text x="${left - 8}" y="${y(tick) + 4}" text-anchor="end" class="t-quiet">${eur(tick)}</text>`;
+  MONTH_KEYS.forEach((key, index) => { const date = `${key}-01`; svg += `<line x1="${x(date)}" x2="${x(date)}" y1="${top}" y2="${height - bottom}" stroke="var(--grid)"/><text x="${x(date) + 4}" y="${height - 8}" class="t-quiet">${MONTH_LABELS[index]}</text>`; });
+  svg += `<path d="${area}" fill="var(--chart-fill)"/><path d="${area}" fill="var(--red-icon)" fill-opacity="0.10" clip-path="url(#below-balance)"/>`;
+  svg += `<line x1="${left}" x2="${width - right}" y1="${y(0)}" y2="${y(0)}" stroke="var(--red-icon)" stroke-width="1.25"/>`;
+  svg += `<path d="${line}" fill="none" stroke="var(--chart-line)" stroke-width="2" stroke-linejoin="round"/>`;
+  const last = points.at(-1);
+  svg += `<text x="${x(last[0]) - 8}" y="${y(last[1]) + (last[1] < 0 ? 18 : -10)}" text-anchor="end" class="t-strong">${eur(last[1])} op ${dateNl(last[0]).slice(0, 5)}</text>`;
+  return svg + '</svg>';
+}
+
+/* ---------- Scorecard light: alleen E1-buckets van de actieve weergave ---------- */
+const monthlyOut = rows => (outflow(rows) - inflow(rows)) / 12;
+const monthlyIn = rows => (inflow(rows) - outflow(rows)) / 12;
+const names = rows => [...new Set(rows.map(row => row.counterpartDescription ?? 'Unknown'))].join(', ');
+function profileRow(name) {
+  const rows = bucketRows('clientProfile', name);
+  const rows3 = inLast(rows, LAST_THREE);
+  const none = 'niet gevonden';
+  switch (name) {
+    case 'Debt collection': return { name: 'Deurwaarders en incasso', basis: '3 mnd', value: `${rows3.length}×`, detail: `${eur(outflow(rows3))} · 12 mnd ${rows.length}×`, verdict: rows3.length ? 'bad' : rows.length ? 'warn' : 'good' };
+    case 'Taxes': return { name: 'Belastingen', basis: '12 mnd', value: `${k(monthlyOut(rows))}/mnd`, detail: `${rows.length} betalingen`, verdict: 'info' };
+    case 'Loans': {
+      const all = [...rows, ...bucketRows('clientProfile', 'Vehicle Lease'), ...bucketRows('clientProfile', 'Equipment Lease')];
+      return { name: 'Leningen en leases', basis: '12 mnd', value: `${k(monthlyOut(all))}/mnd`, detail: overlay === 'prive' ? 'Loans' : 'Loans + Vehicle Lease + Equipment Lease', verdict: 'info', go: 'verplichtingen' };
+    }
+    case 'Housing': return { name: 'Woonlasten', basis: '12 mnd', value: rows.length ? `${k(monthlyOut(rows))}/mnd` : '0×', detail: rows.length ? names(rows) : none, verdict: 'info' };
+    case 'Salary': return { name: 'Salaris', basis: '12 mnd', value: rows.length ? `${k(monthlyIn(rows))}/mnd` : '0×', detail: rows.length ? names(rows) : none, verdict: 'info' };
+    case 'Car': return { name: 'Auto', basis: '12 mnd', value: rows.length ? `${k(monthlyOut(rows))}/mnd` : '0×', detail: `${rows.length} betalingen`, verdict: 'info' };
+    case 'Child': return { name: 'Kinderen', basis: '12 mnd', value: `${rows.length}×`, detail: rows.length ? `opvang en kindregelingen · netto ${eur(sum(rows.map(row => row.amount)))}` : none, verdict: 'info' };
+    case 'Divorced': return { name: 'Alimentatie', basis: '12 mnd', value: `${rows.length}×`, detail: rows.length ? eur(sum(rows.map(row => row.amount))) : none, verdict: rows.length ? 'warn' : 'good' };
+    case 'Pension': return { name: 'Pensioen', basis: '12 mnd', value: `${rows.length}×`, detail: rows.length ? eur(inflow(rows)) : none, verdict: 'info' };
+    case 'Unemployed': return { name: 'Werkloosheid', basis: '12 mnd', value: `${rows.length}×`, detail: rows.length ? eur(inflow(rows)) : none, verdict: rows.length ? 'warn' : 'good' };
+    case 'Other benefits': return { name: 'Overige uitkeringen', basis: '12 mnd', value: `${rows.length}×`, detail: rows.length ? `${eur(inflow(rows))} · ${names(rows)}` : none, verdict: 'info' };
+    case 'Fines': return { name: 'Boetes', basis: '12 mnd', value: `${rows.length}×`, detail: rows.length ? eur(outflow(rows)) : none, verdict: rows.length ? 'warn' : 'good' };
+    case 'Gambling': return { name: 'Gokken', basis: '12 mnd', value: `${rows.length}×`, detail: rows.length ? eur(outflow(rows)) : none, verdict: rows.length ? 'bad' : 'good' };
+    case 'Crypto': return { name: 'Crypto', basis: '12 mnd', value: `${rows.length}×`, detail: rows.length ? eur(outflow(rows)) : none, verdict: rows.length ? 'warn' : 'good' };
+    default: return null;
+  }
+}
+const PROFILE_ORDER = ['Debt collection', 'Taxes', 'Loans', 'Housing', 'Salary', 'Car', 'Child', 'Divorced', 'Pension', 'Unemployed', 'Other benefits', 'Fines', 'Gambling', 'Crypto'];
+function scorecard() {
+  const reversals = bucketRows('flaggedTransactions', 'Reversal payments');
+  const arrangements = bucketRows('flaggedTransactions', 'Payment arrangements');
+  const round = bucketRows('otherHighlightedTransactions', 'Round number');
+  const low50 = bucketRows('lowConfidenceTransactions', 'Confidence <50%');
+  const low60 = bucketRows('lowConfidenceTransactions', '50% <= Confidence <60%');
+  const volume = sum(active().map(row => Math.abs(row.amount))) || 1;
+  const lowVolume = sum([...low50, ...low60].map(row => Math.abs(row.amount))) / volume;
+  const unknown = ofCategory(active(), key => key === 'other.other');
+  const unknownShare = sum(unknown.map(row => Math.abs(row.amount))) / volume;
+  const profileRows = PROFILE_ORDER.filter(name => hasBucket('clientProfile', name)).map(name => { const row = { ...profileRow(name), bucket: name }; if (row.verdict === 'info' && !bucketRows('clientProfile', name).length) row.verdict = 'good'; return row; });
+  return [
+    { group: 'Profiel', section: 'clientProfile', rows: profileRows },
+    { group: 'Signalen', section: 'flaggedTransactions', rows: [
+      { name: 'Terugboekingen', bucket: 'Reversal payments', basis: '3 mnd', value: `${inLast(reversals, LAST_THREE).length}×`, detail: names(reversals) || 'geen', verdict: inLast(reversals, LAST_THREE).length > 2 ? 'bad' : reversals.length ? 'warn' : 'good' },
+      { name: 'Betalingsregelingen', bucket: 'Payment arrangements', basis: '12 mnd', value: `${arrangements.length}×`, detail: arrangements.length ? `${eurCents(-arrangements.at(-1).amount)}/mnd · ${names(arrangements)}` : 'geen', verdict: arrangements.length ? 'warn' : 'good' },
+      { name: 'Ronde bedragen', section: 'otherHighlightedTransactions', bucket: 'Round number', basis: '12 mnd', value: `${round.length}×`, detail: round.length ? `${round.map(row => eur(row.amount)).join(', ')} · ${names(round)}` : 'geen', verdict: round.length ? 'warn' : 'good' },
+    ] },
+    { group: 'Zekerheid categorisatie', section: 'lowConfidenceTransactions', rows: [
+      { name: 'Zekerheid onder 60%', bucket: 'Confidence <50%', basis: '12 mnd', value: `${low50.length + low60.length}×`, detail: `${pct(lowVolume, 1)} van het volume · ${low50.length}× onder 50%`, verdict: lowVolume > 0.1 ? 'bad' : lowVolume > 0.03 ? 'warn' : 'good' },
+      { name: 'Niet te categoriseren', category: 'other.other', basis: '12 mnd', value: pct(unknownShare, 1), detail: `${unknown.length} transacties · netto ${eur(sum(unknown.map(row => row.amount)))}`, verdict: unknownShare > 0.1 ? 'bad' : unknownShare > 0.05 ? 'warn' : 'good' },
+    ] },
+  ];
+}
+
+const isLoanKey = key => (key.startsWith('loan.') && key !== 'loan.debt_collection') || key === 'housing.mortgage' || key === 'office.mortgage';
+
+/* ---------- Tabs ---------- */
+const TABS = [
+  { id: 'overzicht', label: 'Overzicht' },
+  { id: 'categorieen', label: 'Categorieën' },
+  { id: 'tegenpartijen', label: 'Tegenpartijen' },
+  { id: 'verplichtingen', label: 'Verplichtingen', verdict: 'warn' },
+  { id: 'signalen', label: 'Signalen', verdict: 'bad' },
+  { id: 'transacties', label: 'Transacties' },
+];
+
+function renderOverview() {
+  const rows = active();
+  const ins = byMonth(rows, inflow), outs = byMonth(rows, outflow);
+  const in12 = sum(ins), out12 = sum(outs), in3 = sum(LAST_THREE.map(index => ins[index])), out3 = sum(LAST_THREE.map(index => outs[index]));
+  const revenue = ofCategory(rows, key => key.startsWith('income.') || (overlay === 'prive' && (key === 'derived.owner_transfer' || key.startsWith('subsidy.'))));
+  const privateAccount = ACCOUNTS.find(account => account.role === 'prive');
+  const showCompany = overlay !== 'prive' && COMPANY_INFO;
+  const title = overlay === 'prive' ? (privateAccount?.accountName ?? 'Privé') : overlay === 'samen' && privateAccount ? `${COMPANY_INFO?.name ?? ACCOUNTS[0]?.accountName} + ${privateAccount.accountName}` : (COMPANY_INFO?.name ?? ACCOUNTS[0]?.accountName ?? 'Onbekende onderneming');
+  const revenueMonthly = byMonth(revenue, inflow);
+  const revenue12 = sum(revenueMonthly), revenue3 = sum(LAST_THREE.map(index => revenueMonthly[index]));
+  const revenueChange = (revenue3 / 3) / (revenue12 / 12) - 1;
+  const groups = scorecard();
+  const counts = { good: 0, warn: 0, bad: 0, info: 0 };
+  groups.flatMap(group => group.rows).forEach(row => { counts[row.verdict] += 1; });
+  const debt3 = inLast(bucketRows('clientProfile', 'Debt collection'), LAST_THREE);
+  document.getElementById('panel-overzicht').innerHTML = `
+    <div class="card">
+      <div class="dossier">
+        <div>
+          <h2>${esc(title)} <span class="chip good">Analyse afgerond</span></h2>
+          <div class="dossier-meta">
+            ${showCompany ? `<span>Rechtsvorm <b>${esc((COMPANY_INFO.legalForm ?? 'onbekend').toLowerCase())}</b> · KvK <b>${esc(COMPANY_INFO.kvkNumber)}</b></span>
+            ${COMPANY_INFO.industryCode ? `<span>SBI <b>${esc(COMPANY_INFO.industryCode)}</b> ${esc((COMPANY_INFO.industryDescription ?? '').toLowerCase())}</span>` : ''}
+            ${COMPANY_INFO.numberOfEmployees != null ? `<span><b>${COMPANY_INFO.numberOfEmployees}</b> werkzame personen${COMPANY_INFO.startDate ? ` · sinds <b>${dateNl(String(COMPANY_INFO.startDate).slice(0, 10))}</b>` : ''}</span>` : ''}` : overlay === 'prive' ? '<span>Privérekening · E1-profiel <b>retail</b>, geen KvK-gegevens</span>' : '<span>Geen <code>companyInfo</code>: analyse zonder <code>kvk_number</code></span>'}
+            <span><b>${GENERAL_INFO.accounts.length}</b> rekeningen · data <b>${dateNl(GENERAL_INFO.startDate)}</b> t/m <b>${dateNl(GENERAL_INFO.endDate)}</b></span>
+          </div>
+        </div>
+        <span class="select">E1 · ${OVERLAY_PROFILE[overlay]}</span>
+      </div>
+      <div class="tiles">
+        ${tile('Gemiddelde inkomsten', k(revenue12 / 12), '/mnd', `laatste 3 mnd <b>${k(revenue3 / 3)}</b> (${signedPct(revenueChange)})`, [overlay === 'prive' ? 'Bijschrijvingen met <code>income.*</code> of <code>subsidy.*</code>, plus overboekingen van de eigen zakelijke rekening, ÷ 12' : 'Som van alle bijschrijvingen met <code>category.e1.category</code> = <code>income.*</code> ÷ 12', `${eur(revenue12)} ÷ 12 = ${eur(revenue12 / 12)}`, `Laatste 3 mnd: ${eur(revenue3)} ÷ 3`, overlay === 'zakelijk' ? 'Stortingen vanaf de eigen privérekening tellen niet mee' : 'Overboekingen tussen eigen rekeningen tellen niet mee'])}
+        ${tile('Gemiddelde instroom', k(in12 / 12), '/mnd', `laatste 3 mnd <b>${k(in3 / 3)}</b>`, [`Alle bijschrijvingen ${includeInternal ? 'inclusief' : 'exclusief'} <code>internal.other</code> ÷ 12`, `${eur(in12)} ÷ 12`, `<code>generalInfo.totalInflow</code> (inclusief intern): ${eur(GENERAL_INFO.totalInflow)}`])}
+        ${tile('Gemiddelde uitstroom', k(out12 / 12), '/mnd', `laatste 3 mnd <b>${k(out3 / 3)}</b>`, [`Alle afschrijvingen ${includeInternal ? 'inclusief' : 'exclusief'} <code>internal.other</code> ÷ 12`, `${eur(out12)} ÷ 12`, `<code>generalInfo.totalOutflow</code> (inclusief intern): ${eur(GENERAL_INFO.totalOutflow)}`])}
+        ${tile('Banksaldo', k(GENERAL_INFO.endBalance), '', `begin periode <b>${eur(GENERAL_INFO.startBalance)}</b>`, ['<code>generalInfo.endBalance</code>, beide rekeningen samen', `Begin: <code>startBalance</code> ${eur(GENERAL_INFO.startBalance)}`, `Verschil = instroom − uitstroom = ${eur(GENERAL_INFO.totalInflow - GENERAL_INFO.totalOutflow)}`])}
+      </div>
+      ${debt3.length ? `<div class="warn-box">${ICON.alert}<div><strong>${debt3.length} betalingen aan deurwaarders of incassobureaus in de laatste 3 maanden</strong><span>Samen ${eur(outflow(debt3))}, aan ${[...new Set(debt3.map(row => row.counterpartDescription))].join(' en ')}. Bucket <code>clientProfile</code> → Debt collection.</span></div></div>` : ''}
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Scorecard</h2><p class="sub">${counts.good} goed · ${counts.warn} matig · ${counts.bad} slecht · ${counts.info} ter info</p></div>
+        <span class="select">Loanwise Zakelijk Light v0</span>
+      </div>
+      <div class="windows"><span>Elke indicator is één bucket uit de E1-analyse:</span><span><b>3 mnd</b> = ${WINDOW_3}</span><span><b>12 mnd</b> = ${WINDOW_12}</span></div>
+      <div class="sc-head"><span></span><span>Indicator</span><span>Basis</span><span>Waarde</span><span>Oordeel</span><span></span></div>
+      ${groups.map(group => `<div class="sc-group"><div class="sc-group-title">${group.group} <span class="bucket">· ${group.section}</span></div>${group.rows.map(row => `
+        <div class="sc-row">${ICON[row.verdict]}<div class="sc-name">${row.name}<span>${row.bucket ? `“${row.bucket}”` : `<code>${row.category}</code>`}</span></div><div class="sc-basis">${row.basis}</div><div class="sc-value">${row.value}<span>${esc(row.detail)}</span></div>${chip(row.verdict)}${row.go ? goButton(row.go) : row.category ? categoryButton(row.category) : bucketButton(row.section ?? group.section, row.bucket)}</div>`).join('')}</div>`).join('')}
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Instroom en uitstroom</h2><p class="sub">Per maand, ${WINDOW_12} · ${includeInternal ? 'inclusief' : 'exclusief'} interne overboekingen</p></div>
+        <div class="legend"><span><i class="swatch" style="background:var(--chart-line)"></i>Instroom</span><span><i class="swatch" style="background:var(--chart-soft)"></i>Uitstroom</span><span><i class="swatch" style="background:#fff;border:2px solid var(--primary);border-radius:50%"></i>Netto</span></div>
+      </div>
+      <div class="card-body scroll-x">${inOutChart()}</div>
+      <div class="source"><b>Herleiding:</b> bedragen per maand op <code>bookDate</code>, opgeteld uit de transacties. De E1-analyse levert geen maandtotalen, alleen <code>totalInflow</code> en <code>totalOutflow</code> over de hele periode.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div><h2>Ontwikkeling bankrekeningsaldo</h2><p class="sub">${overlayAccounts().length > 1 ? `${overlayAccounts().length} rekeningen samen` : '1 rekening'}, ${WINDOW_12} · kredietlimiet onbekend</p></div></div>
+      <div class="card-body scroll-x">${balanceChart()}</div>
+      <div class="source"><b>Herleiding:</b> beginsaldo per rekening uit <code>accountBalance</code> of <code>balanceAfterTransaction</code>, daarna per dag Σ <code>amount</code> (onafhankelijk van de volgorde binnen een dag); eindigt op <code>endBalance</code> ${eur(GENERAL_INFO.endBalance)}.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div><h2>Afbakening light</h2><p class="sub">Wat deze versie wel en niet doet, ten opzichte van Loanwise Zakelijk</p></div></div>
+      <div class="rules">
+        <div class="ask">${ICON.good}<span class="name">Wel</span><span class="text">Categorieën, zekerheid en flags per transactie zoals E1 ze levert; de buckets uit <code>clientProfile</code>, <code>flaggedTransactions</code>, <code>lowConfidenceTransactions</code> en <code>otherHighlightedTransactions</code>; top-5 tegenpartijen; KvK-gegevens uit <code>companyInfo</code>; maandverloop opgeteld uit de transacties.</span></div>
+        <div class="ask">${ICON.info}<span class="name">Niet</span><span class="text">Eigen categorieregels, verbonden partijen buiten de eigen rekeningen, omzet per rekening, herkenning van belastingsoort via het betalingskenmerk, btw-toets, indicatief resultaat, DSCR en de controlelijst voor de analist.</span></div>
+        <div class="ask">${ICON.warn}<span class="name">Vraag aan Enable Now</span><span class="text">Kan één consent per rekening een eigen profiel krijgen (zakelijk <code>corporate</code>, privé <code>retail</code>) zonder dat de tweede job het <code>e1</code>-object overschrijft? Deze versie gaat daarvan uit. Corporate kent geen <code>tax.income</code>; IB en Zvw van een eenmanszaak landen daar in <code>tax.other</code>, op de privérekening in <code>tax.income</code>. Maandtotalen per bucket en meer dan 5 tegenpartijen zouden de light-versie eenvoudiger maken.</span></div>
+      </div>
+    </div>`;
+}
+
+function renderCategories() {
+  const rows = active();
+  const present = [...new Set(rows.map(row => cat(row)))];
+  const body = GROUPS.map(([group, label]) => {
+    const keys = present.filter(key => groupOf(key) === group).sort();
+    if (!keys.length) return '';
+    const groupRows = rows.filter(row => groupOf(cat(row)) === group);
+    const lines = keys.map(key => {
+      const keyRows = rows.filter(row => cat(row) === key);
+      const spark = byMonth(keyRows, monthRows => Math.abs(sum(monthRows.map(row => row.amount)))).slice(SPARK_START);
+      const confidence = sum(keyRows.map(row => row.category.e1.confidence)) / keyRows.length;
+      return `<tr class="item"><td>${categoryLabel(key)}<span class="cat-key">${key}</span></td><td class="num">${keyRows.length}</td><td class="num">${inflow(keyRows) ? eur(inflow(keyRows)) : '—'}</td><td class="num">${outflow(keyRows) ? eur(outflow(keyRows)) : '—'}</td><td class="num">${confidenceChip(confidence)}</td><td>${sparkBars(spark)}</td><td class="action">${categoryButton(key)}</td></tr>`;
+    }).join('');
+    return `<tr class="group"><td>${label}</td><td class="num">${groupRows.length}</td><td class="num">${inflow(groupRows) ? eur(inflow(groupRows)) : '—'}</td><td class="num">${outflow(groupRows) ? eur(outflow(groupRows)) : '—'}</td><td></td><td></td><td class="action">${categoryButton(`${group}.*`)}</td></tr>${lines}`;
+  }).join('');
+  const relevant = { zakelijk: ['income', 'expense', 'office', 'loan', 'insurance', 'tax', 'subsidy', 'cash', 'investment', 'gambling', 'internal', 'other'], prive: ['income', 'expense', 'housing', 'loan', 'alimony', 'insurance', 'tax', 'subsidy', 'cash', 'investment', 'gambling', 'internal', 'other'] };
+  const missing = GROUPS.filter(([group]) => (overlay === 'samen' ? [...relevant.zakelijk, ...relevant.prive] : relevant[overlay]).includes(group) && (includeInternal || group !== 'internal') && !present.some(key => groupOf(key) === group)).map(([, label]) => label);
+  const costGroups = GROUPS.filter(([group]) => !['income', 'internal'].includes(group)).map(([group, label]) => ({ group, label, value: outflow(rows.filter(row => groupOf(cat(row)) === group && (row.amount < 0 || row.category.e1.flags.length))) - inflow(rows.filter(row => groupOf(cat(row)) === group && row.amount > 0 && row.category.e1.flags.length)) })).filter(entry => entry.value > 0).sort((first, second) => second.value - first.value);
+  const costTotal = sum(costGroups.map(entry => entry.value));
+  const expenseSplit = ['expense.operations', 'expense.transport'];
+  document.getElementById('panel-categorieen').innerHTML = `
+    <div class="card">
+      <div class="card-head"><div><h2>Bedragen per E1-categorie</h2><p class="sub">${WINDOW_12} · ${includeInternal ? 'inclusief' : 'exclusief'} interne overboekingen · zekerheid = gemiddelde <code>confidence</code></p></div></div>
+      <div class="table-wrap"><table class="lw-table">
+        <thead><tr><th>Categorie</th><th class="num">Aantal</th><th class="num">Instroom</th><th class="num">Uitstroom</th><th class="num">Zekerheid</th><th>${MONTH_LABELS[SPARK_START]}–${MONTH_LABELS[11]}</th><th></th></tr></thead>
+        <tbody>${body}</tbody>
+        <tfoot><tr><td>Totaal</td><td class="num">${rows.length}</td><td class="num">${eur(inflow(rows))}</td><td class="num">${eur(outflow(rows))}</td><td></td><td></td><td></td></tr></tfoot>
+      </table></div>
+      <div class="sc-clear"><span class="label">Niet gevonden:</span>${missing.map(label => `<span>${ICON.good}${label}</span>`).join('')}</div>
+      <div class="source"><b>Herleiding:</b> per transactie <code>category.e1.category</code>; de groep is het eerste deel van de sleutel (${expenseSplit.map(key => `<code>${key}.*</code>`).join(' en ')} vallen onder bedrijfskosten). Terugbetalingen en terugboekingen houden de categorie van de oorspronkelijke betaling.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div><h2>Kostenstructuur</h2><p class="sub">Uitstroom per groep, ${WINDOW_12}</p></div></div>
+      <div class="hbars">${costGroups.map((entry, index) => `<div class="hrow"><span class="name">${entry.label}</span><span class="track"><span class="fill${index === 0 ? ' accent' : ''}" style="width:${(entry.value / costGroups[0].value * 100).toFixed(1)}%"></span></span><span class="num">${k(entry.value)}</span><span class="share-pct">${pct(entry.value / costTotal)}</span></div>`).join('')}</div>
+      <div class="source"><b>Herleiding:</b> uitstroom per groep, gecorrigeerd voor transacties met de flag <code>refund</code> of <code>reversal_payment</code>. “Niet te categoriseren” bevat hier vooral privé-opnamen van de ondernemer.</div>
+    </div>`;
+}
+
+function topCounterparties(side) {
+  const rows = active().filter(row => side === 'inflow' ? row.amount > 0 : row.amount < 0);
+  const totals = new Map();
+  rows.forEach(row => {
+    const name = row.counterpartDescription ?? 'Unknown';
+    const entry = totals.get(name) ?? { name, rows: [] };
+    entry.rows.push(row);
+    totals.set(name, entry);
+  });
+  const ranked = [...totals.values()].map(entry => ({ ...profileEntry(entry.name, entry.rows), value: Math.abs(sum(entry.rows.map(row => row.amount))) })).sort((first, second) => second.value - first.value);
+  return { top: ranked.slice(0, 5), total: Math.abs(sum(rows.map(row => row.amount))), count: ranked.length };
+}
+function counterpartyCard(side, title) {
+  const { top, total, count } = topCounterparties(side);
+  const legal = name => LEGAL.test(name) ? '<span class="chip outline">Zakelijk</span>' : /\s(eo|e\/o)\s/.test(name) ? '<span class="chip outline">Particulier</span>' : '';
+  return `<div class="card">
+    <div class="card-head"><div><h2>${title}</h2><p class="sub">Top-5 op totaalbedrag · ${count} tegenpartijen in totaal</p></div></div>
+    <div class="table-wrap"><table class="lw-table">
+      <thead><tr><th>#</th><th>counterpartDescription</th><th class="num">Aantal</th><th class="num">Bedrag</th><th class="num">Aandeel</th><th></th></tr></thead>
+      <tbody>${top.map((entry, index) => `<tr><td>${index}</td><td>${esc(entry.name)} ${legal(entry.name)}<span class="muted">${entry.categories.map(key => `<code>${key}</code>`).join(' ')}</span></td><td class="num">${entry.transactionCount}</td><td class="num">${eur(entry.value)}</td><td class="num">${pct(entry.value / total)}</td><td class="action"><button type="button" class="btn-view" data-counterparty="${esc(entry.name)}" data-side="${side}">${ICON.eye}bekijken</button></td></tr>`).join('')}
+      <tr class="total-row"><td></td><td>Top-5 samen</td><td class="num">${sum(top.map(entry => entry.transactionCount))}</td><td class="num">${eur(sum(top.map(entry => entry.value)))}</td><td class="num">${pct(sum(top.map(entry => entry.value)) / total)}</td><td></td></tr></tbody>
+    </table></div>
+    <div class="source"><b>Herleiding:</b> <code>topCounterparties.${side}</code>, sleutels <code>"0"</code> t/m <code>"4"</code>. Aandeel = bedrag ÷ alle ${side === 'inflow' ? 'bijschrijvingen' : 'afschrijvingen'} (${eur(total)}).</div>
+  </div>`;
+}
+function renderCounterparties() {
+  const { top, total } = topCounterparties('inflow');
+  const customers = active().filter(row => cat(row).startsWith('income.'));
+  const topCustomer = top.find(entry => entry.categories.some(key => key.startsWith('income.')));
+  const customerTotal = inflow(customers);
+  const share = topCustomer ? topCustomer.value / customerTotal : 0;
+  document.getElementById('panel-tegenpartijen').innerHTML = `
+    <div class="card">
+      <div class="figures">
+        <div class="figure"><b>${topCustomer ? pct(share) : '—'}</b><span>grootste klant in de inkomsten${topCustomer ? ` (${esc(topCustomer.name)})` : ''}</span></div>
+        <div class="figure"><b>${new Set(customers.map(row => row.counterpartDescription ?? 'Unknown')).size}</b><span>unieke betalers met <code>income.*</code></span></div>
+        <div class="figure"><b>${customers.length}</b><span>klantbetalingen in ${WINDOW_12}</span></div>
+        <div class="figure"><b>${pct(sum(top.map(entry => entry.value)) / total)}</b><span>aandeel top-5 in de instroom</span></div>
+      </div>
+    </div>
+    <div class="grid-2">${counterpartyCard('inflow', 'Grootste ontvangsten')}${counterpartyCard('outflow', 'Grootste betalingen')}</div>`;
+}
+
+function renderObligations() {
+  const rows = active();
+  const sections = [
+    { title: 'Belastingen', bucket: 'Taxes', keys: [...new Set(rows.map(row => cat(row)).filter(key => key.startsWith('tax.')))].sort() },
+    { title: 'Leningen en leases', bucket: 'Loans · Vehicle Lease · Equipment Lease', keys: [...new Set(rows.map(row => cat(row)).filter(isLoanKey))].sort() },
+    { title: 'Overige vaste lasten', bucket: 'Housing en geen bucket', keys: [...new Set(rows.map(row => cat(row)).filter(key => (key.startsWith('office.') || key.startsWith('insurance.') || key.startsWith('housing.') || key === 'expense.essential.childcare' || key.startsWith('alimony.')) && !isLoanKey(key)))].sort() },
+  ];
+  const net = keyRows => outflow(keyRows) - inflow(keyRows);
+  const sectionTotals = sections.map(section => net(rows.filter(row => section.keys.includes(cat(row)))));
+  const ins = byMonth(rows, inflow), outs = byMonth(rows, outflow);
+  const operating = sum(ins) - sum(outs) + sum(sectionTotals);
+  const arrangements = bucketRows('flaggedTransactions', 'Payment arrangements');
+  document.getElementById('panel-verplichtingen').innerHTML = `
+    <div class="card">
+      <div class="figures">
+        ${sections.map((section, index) => `<div class="figure"><b>${k(sectionTotals[index] / 12)}</b><span>${section.title.toLowerCase()} per maand</span></div>`).join('')}
+        <div class="figure"><b class="${operating < 0 ? 'negative' : ''}">${k(operating / 12)}</b><span>netto kasstroom vóór deze lasten, per maand</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><h2>Vaste lasten per maand</h2><p class="sub">Netto uitstroom per E1-categorie · laatste 6 maanden en het 12-maandsgemiddelde</p></div></div>
+      <div class="table-wrap"><table class="lw-table">
+        <thead><tr><th>Categorie</th><th class="num">Gem./mnd</th>${LAST_SIX.map(index => `<th class="num">${MONTH_LABELS[index]}</th>`).join('')}<th></th></tr></thead>
+        <tbody>${sections.map(section => `<tr class="group"><td colspan="${LAST_SIX.length + 3}">${section.title} <span class="muted" style="display:inline">· ${section.bucket}</span></td></tr>${section.keys.map(key => {
+          const keyRows = rows.filter(row => cat(row) === key);
+          const months = byMonth(keyRows, net);
+          return `<tr class="item"><td>${categoryLabel(key)}<span class="cat-key">${key}</span></td><td class="num">${eur(sum(months) / 12)}</td>${LAST_SIX.map(index => `<td class="num${months[index] === 0 ? ' estimated' : ''}">${months[index] ? eur(months[index]) : '—'}</td>`).join('')}<td class="action">${categoryButton(key)}</td></tr>`;
+        }).join('')}`).join('')}
+        <tr class="total-row"><td>Totaal vaste lasten</td><td class="num">${eur(sum(sectionTotals) / 12)}</td>${LAST_SIX.map(index => `<td class="num">${eur(sum(sections.map(section => net(rows.filter(row => section.keys.includes(cat(row)) && monthIndex(row) === index)))))}</td>`).join('')}<td></td></tr></tbody>
+      </table></div>
+      <div class="source"><b>Herleiding:</b> <code>clientProfile</code> → Taxes, Loans, Vehicle Lease en Equipment Lease, per maand op <code>bookDate</code>. Netto: een terugboeking (<code>reversal_payment</code>) verlaagt de maand. Huur en verzekeringen hebben in E1 geen bucket en komen uit <code>office.*</code> en <code>insurance.*</code>.</div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><h2>Betalingsregelingen</h2><p class="sub">Uitgaande betalingen met de flag <code>payment_arrangement</code></p></div>${arrangements.length ? bucketButton('flaggedTransactions', 'Payment arrangements') : ''}</div>
+      ${arrangements.length ? `<div class="figures">
+        <div class="figure"><b>${[...new Set(arrangements.map(row => row.counterpartDescription))].join(', ')}</b><span>tegenpartij</span></div>
+        <div class="figure"><b>${eurCents(-arrangements.at(-1).amount)}</b><span>per termijn</span></div>
+        <div class="figure"><b>${arrangements.length}×</b><span>betaald sinds ${dateNl(arrangements[0].bookDate)}</span></div>
+        <div class="figure"><b>${eur(outflow(arrangements))}</b><span>totaal betaald</span></div>
+      </div>` : `<div class="card-body">${ICON.good} Geen betalingsregelingen gevonden.</div>`}
+      <div class="source"><b>Herleiding:</b> <code>flaggedTransactions</code> → Payment arrangements. De E1-categorie (${[...new Set(arrangements.map(row => cat(row)))].map(key => `<code>${key}</code>`).join(', ') || '—'}) zegt waarvoor de regeling is; de restschuld levert E1 niet.</div>
+    </div>`;
+}
+
+function receivedCell(section, name, rows) {
+  const entry = (received()?.[section] ?? []).find(item => item.name === name);
+  if (!entry) return '<span class="muted" style="display:inline">ontbreekt</span>';
+  const ok = entry.transactionCount === rows.length && Math.abs(entry.totalInflow - inflow(rows)) < 0.01 && Math.abs(entry.totalOutflow - outflow(rows)) < 0.01;
+  return `<span class="${ok ? 'check-ok' : 'negative'}" title="${esc(`${entry.transactionCount} transacties · in ${eurCents(entry.totalInflow)} · uit ${eurCents(entry.totalOutflow)}`)}">${entry.transactionCount} ${ok ? '✓' : '✕'}</span>`;
+}
+function renderSignals() {
+  const sectionCards = Object.entries(BUCKETS).map(([section, entries]) => `
+    <div class="card">
+      <div class="card-head"><div><h2><code>${section}</code></h2><p class="sub">${{ clientProfile: 'Transacties per categoriegroep; elke bucket komt altijd terug, ook met 0 transacties', flaggedTransactions: 'Transacties met een flag van het model', lowConfidenceTransactions: 'Transacties waarvan E1 de categorie minder zeker weet', otherHighlightedTransactions: 'Heuristische selectie, los van categorie of flag' }[section]}</p></div></div>
+      <div class="table-wrap"><table class="lw-table">
+        <thead><tr><th>Bucket</th><th>Regel</th><th class="num">transactionCount</th><th class="num">totalInflow</th><th class="num">totalOutflow</th>${received() ? '<th class="num">Enable Now</th>' : ''}<th></th></tr></thead>
+        <tbody>${entries.map(entry => { const entryRows = scope().filter(entry.test); return `<tr><td>${entry.nl}<span class="muted">“${entry.name}”</span></td><td class="mono">${esc(entry.rule)}</td><td class="num">${entryRows.length || '<span class="muted" style="display:inline">0</span>'}</td><td class="num">${eur(inflow(entryRows))}</td><td class="num">${eur(outflow(entryRows))}</td>${received() ? `<td class="num">${receivedCell(section, entry.name, entryRows)}</td>` : ''}<td class="action">${entryRows.length ? bucketButton(section, entry.name) : ''}</td></tr>`; }).join('')}</tbody>
+      </table></div>
+    </div>`).join('');
+  const incidents = [...bucketRows('clientProfile', 'Debt collection'), ...bucketRows('flaggedTransactions', 'Reversal payments')].sort((first, second) => second.bookDate.localeCompare(first.bookDate));
+  document.getElementById('panel-signalen').innerHTML = `
+    <div class="card">
+      <div class="card-head"><div><h2>Laatste betaalproblemen</h2><p class="sub">Debt collection en reversal payments, nieuwste eerst</p></div></div>
+      <div class="timeline">${incidents.map(row => `<div class="tl-item"><span class="tl-date">${dateNl(row.bookDate)}</span>${row.category.e1.flags.includes('reversal_payment') ? ICON.warn : ICON.bad}<div><strong>${esc(row.counterpartDescription)}</strong><span class="desc">${esc(row.description)} · <code>${cat(row)}</code>${row.category.e1.flags.length ? ` · ${row.category.e1.flags.join(', ')}` : ''}</span></div><span class="${row.amount < 0 ? 'negative' : ''}">${eurCents(row.amount)}</span></div>`).join('') || `<div class="tl-item">${ICON.good} Geen betaalproblemen gevonden.</div>`}</div>
+      <div class="source"><b>Herleiding:</b> <code>clientProfile</code> → Debt collection en <code>flaggedTransactions</code> → Reversal payments. De reden van een terugboeking staat alleen in de omschrijving.</div>
+    </div>
+    ${sectionCards}
+    <div class="card">
+      <div class="card-head"><div><h2><code>creditQualityMetrics</code></h2><p class="sub">Nog niet in gebruik bij E1: de lijst is altijd leeg. Zodra Enable Now <code>driver</code>, <code>value</code> en <code>percentile</code> vult, krijgen ze hier een plek.</p></div>${chip('info')}</div>
+    </div>`;
+}
+
+let transactionFilter = 'all';
+let SAMPLE = TX.find(row => row.category.e1.flags.includes('reversal_payment'));
+const FILTERS = [
+  { id: 'all', label: 'Alle', test: () => true },
+  { id: 'low', label: 'Zekerheid < 60%', test: row => row.category.e1.confidence < 0.6 },
+  { id: 'flag', label: 'Met flag', test: row => row.category.e1.flags.length > 0 },
+  { id: 'other', label: 'other.other', test: row => cat(row) === 'other.other' },
+  { id: 'internal', label: 'internal.other', test: row => cat(row) === 'internal.other' },
+];
+function renderTransactions() {
+  const filter = FILTERS.find(entry => entry.id === transactionFilter);
+  const visible = scope().filter(filter.test);
+  document.getElementById('panel-transacties').innerHTML = `
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Transacties</h2><p class="sub">Alle rekeningen, ${WINDOW_12} · veldnamen zoals <code>GET /Transactions</code> ze levert</p></div>
+        <div class="filters">${FILTERS.map(entry => `<button type="button" class="filter" data-filter="${entry.id}" aria-pressed="${entry.id === transactionFilter}">${entry.label} (${scope().filter(entry.test).length})</button>`).join('')}</div>
+      </div>
+      <div class="count-line">${checksum(visible)}</div>
+      ${transactionTable(visible)}
+    </div>
+    <div class="card">
+      <div class="card-head"><div><h2>Eén record zoals <code>GET /Transactions</code> het levert</h2><p class="sub">Velden en nesting volgens de Enable Now-documentatie; dit is de enige invoer van deze pagina, naast de analyse-JSON</p></div></div>
+      <div class="card-body"><pre class="json">${esc(JSON.stringify({ data: [SAMPLE], nextPageToken: 'eyJwYWdlIjoyfQ' }, null, 2))}</pre></div>
+      <div class="source"><b>Herleiding:</b> pagineren met <code>PageSize</code> en <code>PageToken</code> tot <code>nextPageToken</code> = <code>null</code>. Het <code>category</code>-object komt alleen mee nadat een categorisatie-job voor deze transacties heeft gedraaid; <code>reasoning</code> alleen met <code>include=reasoning</code>.</div>
+    </div>`;
+}
+
+function renderTabs() {
+  const worst = rows => rows.some(row => row.verdict === 'bad') ? 'bad' : rows.some(row => row.verdict === 'warn') ? 'warn' : null;
+  const groups = scorecard();
+  TABS.find(tab => tab.id === 'signalen').verdict = worst([...groups[0].rows, ...groups[1].rows].filter(row => row.name !== 'Betalingsregelingen'));
+  TABS.find(tab => tab.id === 'verplichtingen').verdict = bucketRows('flaggedTransactions', 'Payment arrangements').length ? 'warn' : null;
+  document.getElementById('tablist').innerHTML = TABS.map(tab => `<button type="button" role="tab" id="tab-${tab.id}" aria-controls="panel-${tab.id}" aria-selected="false" data-tab="${tab.id}">${tab.label}${tab.verdict ? `<span class="status-dot ${tab.verdict}" aria-label="${VERDICT_LABEL[tab.verdict]}"></span>` : ''}</button>`).join('');
+}
+let currentTab = 'overzicht';
+function showTab(id, scroll) {
+  if (!TABS.some(tab => tab.id === id)) id = 'overzicht';
+  currentTab = id;
+  TABS.forEach(tab => {
+    document.getElementById(`panel-${tab.id}`).hidden = tab.id !== id;
+    document.getElementById(`tab-${tab.id}`).setAttribute('aria-selected', String(tab.id === id));
+  });
+  try { history.replaceState(null, '', `#${id}`); } catch (error) { /* hash niet beschikbaar */ }
+  if (scroll) document.querySelector('.tabbar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function renderAll() {
+  renderOverview();
+  renderCategories();
+  renderCounterparties();
+  renderObligations();
+  renderSignals();
+  renderTransactions();
+}
+/* ---------- Dataset inladen (alleen in deze browser, nergens naartoe gestuurd) ---------- */
+function loadScript(src) {
+  return new Promise((resolve, reject) => { const script = document.createElement('script'); script.src = src; script.onload = resolve; script.onerror = () => reject(new Error('JSZip kon niet laden')); document.head.appendChild(script); });
+}
+async function readJsonTexts(files) {
+  const texts = [];
+  for (const file of files) {
+    if (/\.zip$/i.test(file.name)) {
+      if (!window.JSZip) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+      const zip = await window.JSZip.loadAsync(file);
+      for (const entry of Object.values(zip.files)) if (!entry.dir && /\.json$/i.test(entry.name) && !entry.name.startsWith('__MACOSX')) texts.push([entry.name, await entry.async('string')]);
+    } else texts.push([file.name, await file.text()]);
+  }
+  return texts;
+}
+function classify(parsed, found) {
+  const body = parsed?.response_200 ?? parsed;
+  if (!body || typeof body !== 'object') return;
+  if (body.analysis || body.generalInfo || body.clientProfile) { const analysis = body.analysis ?? body; found.analyses.push({ profile: parsed?.request?.body?.profile ?? body.profile ?? null, analysis }); return; }
+  const list = Array.isArray(body) ? body : Array.isArray(body.data) ? body.data : null;
+  if (!list?.length) return;
+  if ('bookDate' in list[0] && 'amount' in list[0]) found.transactions.push(...list);
+  else if ('iban' in list[0]) found.accounts = list;
+}
+function showBanner(tone, title, text) {
+  const banner = document.getElementById('load-banner');
+  banner.hidden = !title;
+  banner.innerHTML = title ? `<div class="card" style="margin-bottom:16px"><div class="${tone === 'bad' ? 'warn-box' : 'review-strip green'}" style="border-top:0">${tone === 'bad' ? ICON.alert : ICON.good}<div><strong>${esc(title)}</strong><span>${text}</span></div></div></div>` : '';
+}
+async function loadDataset(files) {
+  try {
+    const found = { transactions: [], accounts: null, analyses: [] };
+    const texts = await readJsonTexts(files);
+    texts.forEach(([name, text]) => { try { classify(JSON.parse(text), found); } catch (error) { throw new Error(`${name} is geen geldige JSON`); } });
+    const unique = [...new Map(found.transactions.map(row => [row.id, row])).values()];
+    if (!unique.length) throw new Error('Geen transacties gevonden. Laad de antwoorden van GET /Transactions (los of in een zip).');
+    const missing = unique.filter(row => !row.category?.e1?.category);
+    if (missing.length) throw new Error(`${missing.length} van ${unique.length} transacties hebben geen category.e1. Laat eerst een categorisatie-job (engine e1, profile corporate of retail) draaien.`);
+    unique.forEach(row => { row.category.e1.flags = row.category.e1.flags ?? []; row.category.e1.confidence = Number(row.category.e1.confidence ?? 0); row.amount = Number(row.amount); row.bookDate = String(row.bookDate).slice(0, 10); });
+    const order = (first, second) => first.bookDate.localeCompare(second.bookDate) || String(first.transactionDateTime ?? '').localeCompare(String(second.transactionDateTime ?? '')) || String(first.id).localeCompare(String(second.id));
+    unique.sort(order);
+    setWindow(unique.at(-1).bookDate.slice(0, 7));
+    const inWindow = unique.filter(row => MONTH_KEYS.includes(row.bookDate.slice(0, 7)));
+    const accountList = found.accounts
+      ? found.accounts.map(account => ({ iban: account.iban, accountName: account.accountHolder ?? account.iban, accountId: account.id, endBalance: account.accountBalance?.amount ?? null }))
+      : [...new Map(inWindow.map(row => [row.accountId ?? row.accountNumber, { iban: row.accountNumber ?? row.accountId, accountName: row.accountNumber ?? 'Rekening', accountId: row.accountId, endBalance: null }])).values()];
+    const accountOf = row => accountList.find(account => (row.accountId && account.accountId === row.accountId) || account.iban === row.accountNumber);
+    inWindow.forEach(row => { row.accountNumber = accountOf(row)?.iban ?? row.accountNumber; });
+    accountList.forEach(account => {
+      const rows = inWindow.filter(row => row.accountNumber === account.iban);
+      const lastKnown = [...rows].reverse().find(row => row.balanceAfterTransaction != null);
+      const dayEnd = lastKnown ?? null;
+      const through = dayEnd ? sum(rows.filter(row => row.bookDate <= dayEnd.bookDate).map(row => row.amount)) : 0;
+      account.startBalance = account.endBalance != null ? account.endBalance - sum(rows.map(row => row.amount)) : dayEnd ? Number(dayEnd.balanceAfterTransaction) - through : 0;
+      let balance = account.startBalance;
+      rows.forEach(row => { balance = Math.round((balance + row.amount) * 100) / 100; if (row.balanceAfterTransaction == null) row.balanceAfterTransaction = balance; else balance = Number(row.balanceAfterTransaction); });
+    });
+    found.analyses.forEach(entry => { entry.profile = entry.profile ?? (entry.analysis.companyInfo ? 'corporate' : 'retail'); });
+    accountList.forEach(account => {
+      const profiles = inWindow.filter(row => row.accountNumber === account.iban).map(row => row.category.e1.model?.profile).filter(Boolean);
+      const retailShare = profiles.length ? profiles.filter(profile => profile === 'retail').length / profiles.length : 0;
+      const inRetailAnalysis = found.analyses.some(entry => entry.profile === 'retail' && (entry.analysis.generalInfo?.accounts ?? []).some(item => item.accountId === account.accountId || item.iban === account.iban));
+      account.role = retailShare > 0.5 || (!profiles.length && inRetailAnalysis) ? 'prive' : 'zakelijk';
+    });
+    ACCOUNTS.length = 0; ACCOUNTS.push(...accountList.filter(account => inWindow.some(row => row.accountNumber === account.iban)));
+    TX.length = 0; TX.push(...inWindow);
+    RECEIVED_BY = Object.fromEntries(found.analyses.map(entry => [entry.profile, entry.analysis]));
+    COMPANY_INFO = RECEIVED_BY.corporate?.companyInfo ?? found.analyses.find(entry => entry.analysis.companyInfo)?.analysis.companyInfo ?? null;
+    overlay = hasRole('zakelijk') ? 'zakelijk' : 'prive';
+    setBuckets();
+    SAMPLE = TX.find(row => row.category.e1.flags.length) ?? TX[0];
+    computeGeneralInfo();
+    const label = [COMPANY_INFO?.name ?? ACCOUNTS.find(account => account.role === 'zakelijk')?.accountName, ACCOUNTS.find(account => account.role === 'prive')?.accountName].filter(Boolean).join(' + ') || 'Ingeladen dossier';
+    document.getElementById('dataset-name').textContent = label;
+    const chipElement = document.getElementById('dataset-chip');
+    chipElement.textContent = `Ingeladen · ${TX.length} transacties`; chipElement.className = 'chip good';
+    document.getElementById('footer-note').innerHTML = `Ingeladen dataset, alleen in deze browser verwerkt: ${texts.length} bestanden, ${TX.length} transacties over ${ACCOUNTS.length} rekening(en), ${WINDOW_12}. ${found.analyses.length ? `Analyse-JSON ingeladen (${found.analyses.map(entry => entry.profile).join(', ')}); Signalen vergelijkt de buckets per weergave met de transacties.` : 'Geen analyse-JSON ingeladen; buckets zijn berekend uit de transacties.'} Opnieuw laden van de pagina zet de voorbeelddata terug.`;
+    const skipped = unique.length - inWindow.length;
+    const checks = found.analyses.filter(entry => entry.analysis.generalInfo).map(entry => {
+      const info = entry.analysis.generalInfo;
+      const ids = (info.accounts ?? []).map(item => item.accountId), ibans = (info.accounts ?? []).map(item => item.iban);
+      const rows = TX.filter(row => ids.includes(row.accountId) || ibans.includes(row.accountNumber));
+      const ok = Math.abs(info.totalInflow - inflow(rows)) < 0.01 && Math.abs(info.totalOutflow - outflow(rows)) < 0.01;
+      return `${entry.profile} ${ok ? '✓' : '✕'}`;
+    });
+    const roles = ['zakelijk', 'prive'].filter(hasRole).map(role => `${ROLE_LABEL[role].toLowerCase()} ${ACCOUNTS.filter(account => account.role === role).length}`).join(', ');
+    showBanner('good', `Dataset ingeladen: ${label}`, `${TX.length} transacties, ${ACCOUNTS.length} rekening(en) (${roles}), ${WINDOW_12}.${skipped ? ` ${skipped} oudere transacties vallen buiten het venster van 12 maanden.` : ''}${found.accounts ? '' : ' Geen /Accounts-bestand: saldo afgeleid uit balanceAfterTransaction.'}${found.analyses.length ? '' : ' Geen analyse-bestand: KvK-gegevens ontbreken.'}${checks.length ? ` Controle in- en uitstroom tegen <code>generalInfo</code>: ${checks.join(', ')}.` : ''}`);
+    setOverlay(overlay);
+  } catch (error) {
+    showBanner('bad', 'Inladen mislukt', esc(error.message));
+  }
+}
+document.getElementById('load-button').addEventListener('click', () => document.getElementById('load-input').click());
+document.getElementById('load-input').addEventListener('change', event => { if (event.target.files.length) loadDataset([...event.target.files]); event.target.value = ''; });
+document.addEventListener('dragover', event => event.preventDefault());
+document.addEventListener('drop', event => { event.preventDefault(); if (event.dataTransfer?.files?.length) loadDataset([...event.dataTransfer.files]); });
+
+function updateOverlayButtons() {
+  const allowed = { zakelijk: hasRole('zakelijk'), prive: hasRole('prive'), samen: hasRole('zakelijk') && hasRole('prive') };
+  document.querySelectorAll('[data-overlay]').forEach(button => {
+    button.disabled = !allowed[button.dataset.overlay];
+    button.title = allowed[button.dataset.overlay] ? '' : 'Geen rekening van dit type in de dataset';
+    button.setAttribute('aria-pressed', String(button.dataset.overlay === overlay));
+  });
+  document.getElementById('crumb-profile').textContent = OVERLAY_PROFILE[overlay];
+}
+function setOverlay(mode) {
+  overlay = mode;
+  setBuckets();
+  computeGeneralInfo();
+  updateOverlayButtons();
+  renderTabs();
+  renderAll();
+  showTab(currentTab, false);
+}
+function setInternal(include) {
+  includeInternal = include;
+  document.getElementById('internal-include').setAttribute('aria-pressed', String(include));
+  document.getElementById('internal-exclude').setAttribute('aria-pressed', String(!include));
+  renderAll();
+}
+
+setBuckets();
+updateOverlayButtons();
+renderTabs();
+renderAll();
+document.querySelectorAll('[data-overlay]').forEach(button => button.addEventListener('click', () => { if (!button.disabled) setOverlay(button.dataset.overlay); }));
+document.getElementById('internal-include').addEventListener('click', () => setInternal(true));
+document.getElementById('internal-exclude').addEventListener('click', () => setInternal(false));
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal').addEventListener('click', event => { if (event.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', event => { if (event.key === 'Escape') closeModal(); });
+document.addEventListener('click', event => {
+  const filterButton = event.target.closest('[data-filter]');
+  if (filterButton) { transactionFilter = filterButton.dataset.filter; renderTransactions(); return; }
+  const bucketTarget = event.target.closest('[data-bucket]');
+  if (bucketTarget) { showBucket(bucketTarget.dataset.bucket, bucketTarget.dataset.key); return; }
+  const categoryTarget = event.target.closest('[data-category]');
+  if (categoryTarget) { showCategory(categoryTarget.dataset.category); return; }
+  const counterpartyTarget = event.target.closest('[data-counterparty]');
+  if (counterpartyTarget) { showCounterparty(counterpartyTarget.dataset.counterparty, counterpartyTarget.dataset.side); return; }
+  const target = event.target.closest('[data-tab], [data-go]');
+  if (!target) return;
+  if (target.dataset.tab) showTab(target.dataset.tab, false);
+  if (target.dataset.go) showTab(target.dataset.go, true);
+});
+showTab(location.hash.replace('#', ''), false);
+</script>
+
+</body>
+</html>
