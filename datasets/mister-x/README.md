@@ -7,12 +7,13 @@ Eenmanszaak met twee rekeningen in één consent, elk met een eigen rekeningnumm
 | Zakelijk | NL45 RABO •••• ••17 | Mister X Consultancy | corporate |
 | Privé | NL72 INGB •••• ••63 | Mister X | retail |
 
-Periode nov 2025 – okt 2026, 616 transacties (235 zakelijk, 381 privé) in 7 pagina's.
+Periode nov 2025 – okt 2026, 616 transacties (235 zakelijk, 381 privé). Beide consents zijn gedeeld op 02-11-2026.
 
 ## Bestanden
-- 01 token · 02 accounts (beide rekeningen)
+- 00 consents: twee, één per bank (Rabobank zakelijk, ING privé) met `providerKey` en `dateRequested`
+- 01 token · 02a/02b accounts per consent
 - 03a/03b categorisatiejob per rekening: corporate voor zakelijk, retail voor privé
-- 04 transacties pagina 1–7: elke transactie draagt `category.e1.model.profile`
+- 04a/04b transacties per consent (Rabobank 3 pagina's, ING 4): elke transactie draagt `category.e1.model.profile`
 - 05a/05b analyse per profiel; 05a met `companyInfo` (KvK), 05b zonder
 - `internal_ibans` bevat beide rekeningen: privé-opnamen staan op beide kanten als `internal.other`
 
@@ -33,4 +34,4 @@ Periode nov 2025 – okt 2026, 616 transacties (235 zakelijk, 381 privé) in 7 p
 Privé: deurwaarder/incasso (sep), boete CJIB, 2× loterij, IB-betalingsregeling (jun–okt), ronde bedrag € 10.000 nalatenschap, kinderopvang + kinderbijslag, partnersalaris.
 Zakelijk: btw per kwartaal, privéstorting (feb), extra privé-opname (jul), lage zekerheid op 2 posten.
 
-Aanname: één categorisatie- en analysejob per rekening met een eigen profiel; nog te bevestigen door Enable Now.
+Aannames: één categorisatie- en analysejob per rekening met een eigen profiel, en consentstatus `ACTIVE`; nog te bevestigen door Enable Now.

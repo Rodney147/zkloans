@@ -10,6 +10,7 @@ uid = lambda: str(uuid.UUID(int=rnd.getrandbits(128), version=4))
 MONTHS = ['2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10']
 LABELS = ['nov', 'dec', 'jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt']
 CONSENT = uid()
+CONSENT_P = str(uuid.UUID(bytes=uuid.uuid5(uuid.NAMESPACE_URL, 'mister-x/ing').bytes))  # vaste id, raakt de random-volgorde niet
 ACC = {
     'zakelijk': {'id': uid(), 'iban': 'NL45 RABO •••• ••17', 'holder': 'Mister X Consultancy', 'start': 18400.00, 'profile': 'corporate', 'bank': 'Rabobank'},
     'prive': {'id': uid(), 'iban': 'NL72 INGB •••• ••63', 'holder': 'Mister X', 'start': 4250.00, 'profile': 'retail', 'bank': 'ING'},
@@ -220,15 +221,21 @@ ANALYSES = {'corporate': analysis_for(Z, CORPORATE, company), 'retail': analysis
 dump = lambda name, obj: json.dump(obj, open(os.path.join(OUT, name), 'w'), indent=2, ensure_ascii=False)
 ibans = [a['iban'] for a in ACC.values()]
 dump('01-token.json', {'request': {'method': 'POST', 'path': '/connect/token', 'contentType': 'application/x-www-form-urlencoded', 'body': {'client_id': '<client_id>', 'client_secret': '<client_secret>', 'scope': 'customer-api', 'grant_type': 'client_credentials'}}, 'response_200': {'accessToken': '<jwt>', 'expiresIn': 3600, 'tokenType': 'Bearer'}, 'note': 'Responsvelden en geldigheid zijn een aanname.'})
-dump('02-get-accounts.json', {'request': {'method': 'GET', 'path': '/Accounts', 'query': {'ConsentId': CONSENT}}, 'response_200': {'data': [{'id': a['id'], 'iban': a['iban'], 'providerAccountId': a['bank'].lower()[:4] + '-' + a['id'][:8], 'accountHolder': a['holder'], 'bban': None, 'currency': 'EUR', 'accountBalance': {'currency': 'EUR', 'date': '2026-10-31T23:59:59Z', 'amount': a['end']}} for a in ACC.values()]}})
+dump('00-get-consents.json', {'request': {'method': 'GET', 'path': '/v2/consents'}, 'response_200': {'data': [{'id': CONSENT, 'status': 'ACTIVE', 'providerKey': 'rabobank', 'dateStatusUpdated': '2026-11-02T10:14:00Z', 'dateRequested': '2026-11-02T10:14:00Z', 'dateExpire': '2027-05-01T10:14:00Z', 'dateTransactionsUpdated': '2026-11-02T10:14:3Z', 'errors': []}, {'id': CONSENT_P, 'status': 'ACTIVE', 'providerKey': 'ing', 'dateStatusUpdated': '2026-11-02T10:21:00Z', 'dateRequested': '2026-11-02T10:21:00Z', 'dateExpire': '2027-05-01T10:21:00Z', 'dateTransactionsUpdated': '2026-11-02T10:21:3Z', 'errors': []}]}, 'note': 'Eén consent per bank. Statuswaarde ACTIVE is een aanname.'})
+for suffix, key, consent in (('a-rabobank', Z, CONSENT), ('b-ing', P, CONSENT_P)):
+    a = ACC[key]
+    dump(f'02{suffix}-get-accounts.json', {'request': {'method': 'GET', 'path': '/Accounts', 'query': {'ConsentId': consent}}, 'response_200': {'data': [{'id': a['id'], 'iban': a['iban'], 'providerAccountId': a['bank'].lower()[:4] + '-' + a['id'][:8], 'accountHolder': a['holder'], 'bban': None, 'currency': 'EUR', 'accountBalance': {'currency': 'EUR', 'date': '2026-10-31T23:59:59Z', 'amount': a['end']}}]}})
 for suffix, key in (('a-corporate', Z), ('b-retail', P)):
     a, job = ACC[key], uid()
     meta = {'internal_ibans': ibans}
-    dump(f'03{suffix}-categorization-job.json', {'request': {'method': 'POST', 'path': '/v2/categorization-jobs', 'body': {'engine': 'e1', 'profile': a['profile'], 'countryCode': 'nl', 'consentId': CONSENT, 'accountIds': [a['id']], 'metaData': meta}}, 'response_202': {'data': job}, 'poll': {'method': 'GET', 'path': f'/v2/categorization-jobs/{job}', 'response_200': {'data': {'id': job, 'status': 'COMPLETED', 'engine': 'e1', 'profile': a['profile'], 'countryCode': 'nl', 'consentId': CONSENT, 'userId': None, 'externalUserId': None, 'accountIds': [a['id']], 'parentId': None, 'engineVersion': 'e1-2026.10', 'metaData': meta}}}, 'note': 'Eén job per rekening met een eigen profiel is een aanname; navragen bij Enable Now.'})
-desc = sorted(TX, key=lambda t: (t['bookDate'], t['transactionDateTime'], t['id']), reverse=True)
-pages = math.ceil(len(desc) / 100)
-for i in range(pages):
-    dump(f'04-get-transactions-page-{i + 1}.json', {'request': {'method': 'GET', 'path': '/Transactions', 'query': {'ConsentId': CONSENT, 'DateFrom': '2025-11-01T00:00:00Z', 'DateTo': '2026-10-31T23:59:59Z', 'OrderBy': 'bookDate', 'OrderDirection': 'desc', 'PageSize': 100, 'PageToken': None if i == 0 else f'pg{i + 1}'}}, 'response_200': {'data': desc[i * 100:(i + 1) * 100], 'nextPageToken': None if i == pages - 1 else f'pg{i + 2}'}})
+    dump(f'03{suffix}-categorization-job.json', {'request': {'method': 'POST', 'path': '/v2/categorization-jobs', 'body': {'engine': 'e1', 'profile': a['profile'], 'countryCode': 'nl', 'consentId': CONSENT if key == Z else CONSENT_P, 'accountIds': [a['id']], 'metaData': meta}}, 'response_202': {'data': job}, 'poll': {'method': 'GET', 'path': f'/v2/categorization-jobs/{job}', 'response_200': {'data': {'id': job, 'status': 'COMPLETED', 'engine': 'e1', 'profile': a['profile'], 'countryCode': 'nl', 'consentId': CONSENT if key == Z else CONSENT_P, 'userId': None, 'externalUserId': None, 'accountIds': [a['id']], 'parentId': None, 'engineVersion': 'e1-2026.10', 'metaData': meta}}}, 'note': 'Eén job per rekening met een eigen profiel is een aanname; navragen bij Enable Now.'})
+pages = 0
+for suffix, key, consent in (('a-rabobank', Z, CONSENT), ('b-ing', P, CONSENT_P)):
+    desc = sorted([t for t in TX if t['accountId'] == ACC[key]['id']], key=lambda t: (t['bookDate'], t['transactionDateTime'], t['id']), reverse=True)
+    n = math.ceil(len(desc) / 100)
+    pages += n
+    for i in range(n):
+        dump(f'04{suffix}-get-transactions-page-{i + 1}.json', {'request': {'method': 'GET', 'path': '/Transactions', 'query': {'ConsentId': consent, 'DateFrom': '2025-11-01T00:00:00Z', 'DateTo': '2026-10-31T23:59:59Z', 'OrderBy': 'bookDate', 'OrderDirection': 'desc', 'PageSize': 100, 'PageToken': None if i == 0 else f'pg{i + 1}'}}, 'response_200': {'data': desc[i * 100:(i + 1) * 100], 'nextPageToken': None if i == n - 1 else f'pg{i + 2}'}})
 for suffix, key, profile in (('a-corporate', Z, 'corporate'), ('b-retail', P, 'retail')):
     a, job = ACC[key], uid()
     body = {'reference': f'Dossier Mister X {profile}', 'engine': 'e1', 'profile': profile, 'countryCode': 'nl', 'input': {'accountIds': [a['id']]}, 'metaData': {'internal_ibans': ibans, **({'kvk_number': '74561230'} if profile == 'corporate' else {})}, 'dateFrom': '2025-11-01T00:00:00Z', 'dateTo': '2026-10-31T23:59:59Z'}

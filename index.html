@@ -299,6 +299,9 @@ details.how[open] summary::before { content: "−"; }
 /* Light-aanvulling op de Loanwise-huisstijl: alleen wat de E1-uitvoer nodig heeft. */
 [hidden] { display: none !important; }
 .segment-wrap { flex-wrap: wrap; }
+.account-check { width: 16px; height: 16px; accent-color: var(--navy); cursor: pointer; }
+.lw-table tr.account-off td { color: var(--muted); }
+.lw-table tr.account-off td.num { text-decoration: line-through; }
 .segment button:disabled { color: var(--muted); cursor: not-allowed; background: var(--band); }
 
 .cat-key { font-family: var(--mono); font-size: 11.5px; color: var(--muted); display: block; }
@@ -406,8 +409,8 @@ const monthIndex = row => MONTH_KEYS.indexOf(row.bookDate.slice(0, 7));
 
 /* ---------- Enable Now: request (POST /analysis-jobs) ---------- */
 const ACCOUNTS = [
-  { iban: 'NL20 RABO •••• ••35', accountName: 'Slager maatwerk interieur', accountId: '3f1c6e2a-8d47-4b19-a2c5-71e0d9b84a21', startBalance: -4520.15, via: 'hoofdrekening', role: 'zakelijk' },
-  { iban: 'NL41 RABO •••• ••82', accountName: 'Slager maatwerk interieur', accountId: '8b0e4f91-2c3a-4d8e-9f17-5a6b2e3d1c47', startBalance: 1240.0, via: 'ontvangstrekening; saldo gaat maandelijks naar NL20', role: 'zakelijk' },
+  { iban: 'NL20 RABO •••• ••35', accountName: 'Slager maatwerk interieur', accountId: '3f1c6e2a-8d47-4b19-a2c5-71e0d9b84a21', startBalance: -4520.15, via: 'hoofdrekening', role: 'zakelijk', bank: 'Rabobank', sharedOn: '2025-11-03', enabled: true },
+  { iban: 'NL41 RABO •••• ••82', accountName: 'Slager maatwerk interieur', accountId: '8b0e4f91-2c3a-4d8e-9f17-5a6b2e3d1c47', startBalance: 1240.0, via: 'ontvangstrekening; saldo gaat maandelijks naar NL20', role: 'zakelijk', bank: 'Rabobank', sharedOn: '2025-11-03', enabled: true },
 ];
 const ANALYSIS_JOB = { engine: 'e1', profile: 'corporate', countryCode: 'nl', metadata: { kvk_number: '71234567', internal_ibans: ACCOUNTS.map(account => account.iban) } };
 
@@ -420,7 +423,7 @@ let COMPANY_INFO = {
 
 /* ---------- E1-taxonomie (corporate), alleen voor labels ---------- */
 const GROUPS = [
-  ['income', 'Inkomsten'], ['derived', 'Tussen zakelijk en privé'], ['expense', 'Kosten en uitgaven'], ['housing', 'Wonen'], ['office', 'Bedrijfspand'],
+  ['income', 'Inkomsten'], ['derived', 'Tussen eigen rekeningen (afgeleid)'], ['expense', 'Kosten en uitgaven'], ['housing', 'Wonen'], ['office', 'Bedrijfspand'],
   ['loan', 'Leningen, leases en incasso'], ['alimony', 'Alimentatie'], ['insurance', 'Verzekeringen'], ['tax', 'Belastingen'], ['subsidy', 'Subsidies en uitkeringen'],
   ['cash', 'Contant'], ['investment', 'Beleggingen en sparen'], ['gambling', 'Gokken'], ['internal', 'Interne overboekingen'], ['other', 'Overig en niet te categoriseren'],
 ];
@@ -440,7 +443,7 @@ const CATEGORY_LABEL = {
   'cash.other': 'Contante transacties', 'gambling.lottery': 'Loterijen', 'gambling.other': 'Overig gokken',
   'investment.savings': 'Sparen en deposito', 'investment.real_estate': 'Vastgoed', 'investment.participations': 'Deelnemingen', 'investment.crypto': 'Crypto', 'investment.other': 'Overige beleggingen',
   'internal.other': 'Tussen eigen rekeningen', 'other.other': 'Niet betrouwbaar te categoriseren',
-  'derived.owner_transfer': 'Overboeking zakelijk ↔ privé (afgeleid)',
+  'derived.owner_transfer': 'Overboeking zakelijk ↔ privé (afgeleid)', 'derived.own_off': 'Naar of van uitgezette eigen rekening (afgeleid)',
   'income.salary': 'Salaris', 'income.pension.state': 'AOW', 'income.pension.private': 'Pensioen', 'income.pension.other': 'Overig pensioen',
   'housing.rent': 'Huur woning', 'housing.mortgage': 'Hypotheek woning', 'housing.other': 'Overige woonlasten',
   'subsidy.family': 'Kinderbijslag en kindregelingen', 'subsidy.family.income': 'Gezinsuitkering UWV', 'subsidy.health': 'Zorgtoeslag', 'subsidy.disability': 'Arbeidsongeschiktheid', 'subsidy.social': 'Bijstand',
@@ -579,12 +582,15 @@ let overlay = 'zakelijk';
 const ROLE_LABEL = { zakelijk: 'Zakelijk', prive: 'Privé' };
 const OVERLAY_PROFILE = { zakelijk: 'corporate', prive: 'retail', samen: 'corporate + retail' };
 const raw = row => row.category.e1.category;
-const roleOf = iban => ACCOUNTS.find(account => account.iban === iban)?.role ?? null;
-const hasRole = role => ACCOUNTS.some(account => account.role === role);
-const inOverlay = row => overlay === 'samen' || roleOf(row.accountNumber) === overlay;
-const overlayAccounts = () => ACCOUNTS.filter(account => overlay === 'samen' || account.role === overlay);
+const accountOfIban = iban => ACCOUNTS.find(account => account.iban === iban) ?? null;
+const roleOf = iban => accountOfIban(iban)?.role ?? null;
+const isEnabled = iban => accountOfIban(iban)?.enabled !== false;
+const hasRole = role => ACCOUNTS.some(account => account.role === role && account.enabled !== false);
+const inOverlay = row => isEnabled(row.accountNumber) && (overlay === 'samen' || roleOf(row.accountNumber) === overlay);
+const overlayAccounts = () => ACCOUNTS.filter(account => account.enabled !== false && (overlay === 'samen' || account.role === overlay));
 const crossOverlay = row => raw(row) === 'internal.other' && overlay !== 'samen' && !!roleOf(row.counterpartAccountNumber) && roleOf(row.counterpartAccountNumber) !== roleOf(row.accountNumber);
-const cat = row => crossOverlay(row) ? 'derived.owner_transfer' : raw(row);
+const toOwnOff = row => raw(row) === 'internal.other' && !!accountOfIban(row.counterpartAccountNumber) && !isEnabled(row.counterpartAccountNumber);
+const cat = row => toOwnOff(row) ? 'derived.own_off' : crossOverlay(row) ? 'derived.owner_transfer' : raw(row);
 const scope = () => TX.filter(inOverlay);
 
 /* ---------- Afgeleide cijfers ---------- */
@@ -602,7 +608,7 @@ function profileEntry(name, rows) {
 }
 let GENERAL_INFO = null;
 let RECEIVED_BY = {};
-const received = () => overlay === 'samen' ? null : RECEIVED_BY[OVERLAY_PROFILE[overlay]] ?? null;
+const received = () => { if (overlay === 'samen') return null; const analysis = RECEIVED_BY[OVERLAY_PROFILE[overlay]] ?? null; const listed = analysis?.generalInfo?.accounts ?? []; return listed.some(item => !isEnabled(item.iban)) ? null : analysis; };
 function computeGeneralInfo() {
   GENERAL_INFO = {
     startDate: PERIOD.start, endDate: PERIOD.end,
@@ -856,6 +862,37 @@ function scorecard() {
 
 const isLoanKey = key => (key.startsWith('loan.') && key !== 'loan.debt_collection') || key === 'housing.mortgage' || key === 'office.mortgage';
 
+/* ---------- Gedeelde rekeningen: aan/uit per rekening ---------- */
+const BANK_CODES = { RABO: 'Rabobank', INGB: 'ING', ABNA: 'ABN AMRO', KNAB: 'Knab', BUNQ: 'bunq', TRIO: 'Triodos', SNSB: 'SNS', ASNB: 'ASN Bank', RBRB: 'RegioBank', REVO: 'Revolut' };
+const bankFromKey = key => { const value = String(key ?? '').toLowerCase(); const hit = Object.values(BANK_CODES).find(name => value.replace(/[^a-z]/g, '').includes(name.toLowerCase().replace(/[^a-z]/g, ''))); return hit ?? (key || null); };
+const bankFromIban = iban => BANK_CODES[String(iban ?? '').replace(/\s/g, '').slice(4, 8).toUpperCase()] ?? null;
+function accountsCard() {
+  const rows = ACCOUNTS.map(account => {
+    const accountRows = TX.filter(row => row.accountNumber === account.iban);
+    const balance = account.endBalance ?? account.startBalance + sum(accountRows.map(row => row.amount));
+    return { account, count: accountRows.length, balance };
+  });
+  const on = rows.filter(row => row.account.enabled !== false);
+  return `<div class="card">
+    <div class="card-head">
+      <div><h2>Gedeelde rekeningen <span class="chip ${on.length === rows.length ? 'good' : 'warn'}">${on.length} van ${rows.length}</span></h2><p class="sub">Vink een rekening uit om hem buiten de analyse te laten; overboekingen ernaartoe tellen dan als geld dat de rekeningen verlaat</p></div>
+    </div>
+    <div class="table-wrap"><table class="lw-table">
+      <thead><tr><th>Mee</th><th>Bank</th><th>Bankrekening</th><th>Naam</th><th class="num">Transacties</th><th class="num">Balans</th><th>Gedeeld op</th></tr></thead>
+      <tbody>${rows.map(({ account, count, balance }) => `<tr class="${account.enabled === false ? 'account-off' : ''}">
+        <td><input type="checkbox" class="account-check" data-account-toggle="${esc(account.iban)}" ${account.enabled === false ? '' : 'checked'} aria-label="${esc(account.iban)} meetellen"></td>
+        <td>${esc(account.bank ?? bankFromIban(account.iban) ?? '—')}</td>
+        <td class="mono">${esc(account.iban)}</td>
+        <td>${esc(account.accountName)}<span class="muted">${ROLE_LABEL[account.role] ?? ''}${account.role ? ` · ${account.role === 'prive' ? 'retail' : 'corporate'}` : ''}</span></td>
+        <td class="num">${count}</td>
+        <td class="num ${balance < 0 ? 'negative' : ''}">${eurCents(balance)}</td>
+        <td class="mono">${account.sharedOn ? dateNl(account.sharedOn) : '—'}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><td></td><td colspan="3">Meegeteld</td><td class="num">${sum(on.map(row => row.count))}</td><td class="num">${eurCents(sum(on.map(row => row.balance)))}</td><td></td></tr></tfoot>
+    </table></div>
+    <div class="source"><b>Herleiding:</b> bank uit <code>providerKey</code> van de consent (<code>GET /v2/consents/{id}</code>), anders uit de bankcode in het IBAN; gedeeld op = <code>dateRequested</code> van de consent; transacties binnen het venster van 12 maanden; balans = <code>accountBalance.amount</code> uit <code>GET /Accounts</code>. Een uitgezette rekening telt nergens mee; overboekingen ernaartoe of ervandaan worden "naar of van uitgezette eigen rekening". Minstens één rekening blijft aan.</div>
+  </div>`;
+}
+
 /* ---------- Tabs ---------- */
 const TABS = [
   { id: 'overzicht', label: 'Overzicht' },
@@ -903,6 +940,8 @@ function renderOverview() {
       </div>
       ${debt3.length ? `<div class="warn-box">${ICON.alert}<div><strong>${debt3.length} betalingen aan deurwaarders of incassobureaus in de laatste 3 maanden</strong><span>Samen ${eur(outflow(debt3))}, aan ${[...new Set(debt3.map(row => row.counterpartDescription))].join(' en ')}. Bucket <code>clientProfile</code> → Debt collection.</span></div></div>` : ''}
     </div>
+
+    ${accountsCard()}
 
     <div class="card">
       <div class="card-head">
@@ -1167,10 +1206,12 @@ function classify(parsed, found) {
   const body = parsed?.response_200 ?? parsed;
   if (!body || typeof body !== 'object') return;
   if (body.analysis || body.generalInfo || body.clientProfile) { const analysis = body.analysis ?? body; found.analyses.push({ profile: parsed?.request?.body?.profile ?? body.profile ?? null, analysis }); return; }
+  if (body.data && !Array.isArray(body.data) && body.data.providerKey) { found.consents.push(body.data); return; }
   const list = Array.isArray(body) ? body : Array.isArray(body.data) ? body.data : null;
   if (!list?.length) return;
   if ('bookDate' in list[0] && 'amount' in list[0]) found.transactions.push(...list);
-  else if ('iban' in list[0]) found.accounts = list;
+  else if ('iban' in list[0]) found.accounts.push(...list.map(account => ({ ...account, consentId: account.consentId ?? parsed?.request?.query?.ConsentId ?? null })));
+  else if ('providerKey' in list[0]) found.consents.push(...list);
 }
 function showBanner(tone, title, text) {
   const banner = document.getElementById('load-banner');
@@ -1179,7 +1220,7 @@ function showBanner(tone, title, text) {
 }
 async function loadDataset(files) {
   try {
-    const found = { transactions: [], accounts: null, analyses: [] };
+    const found = { transactions: [], accounts: [], consents: [], analyses: [] };
     const texts = await readJsonTexts(files);
     texts.forEach(([name, text]) => { try { classify(JSON.parse(text), found); } catch (error) { throw new Error(`${name} is geen geldige JSON`); } });
     const unique = [...new Map(found.transactions.map(row => [row.id, row])).values()];
@@ -1191,9 +1232,14 @@ async function loadDataset(files) {
     unique.sort(order);
     setWindow(unique.at(-1).bookDate.slice(0, 7));
     const inWindow = unique.filter(row => MONTH_KEYS.includes(row.bookDate.slice(0, 7)));
-    const accountList = found.accounts
-      ? found.accounts.map(account => ({ iban: account.iban, accountName: account.accountHolder ?? account.iban, accountId: account.id, endBalance: account.accountBalance?.amount ?? null }))
-      : [...new Map(inWindow.map(row => [row.accountId ?? row.accountNumber, { iban: row.accountNumber ?? row.accountId, accountName: row.accountNumber ?? 'Rekening', accountId: row.accountId, endBalance: null }])).values()];
+    const consentOf = id => found.consents.find(consent => consent.id === id) ?? (found.consents.length === 1 ? found.consents[0] : null);
+    const accountList = found.accounts.length
+      ? [...new Map(found.accounts.map(account => [account.id ?? account.iban, account])).values()].map(account => {
+          const consent = consentOf(account.consentId);
+          return { iban: account.iban, accountName: account.accountHolder ?? account.iban, accountId: account.id, endBalance: account.accountBalance?.amount ?? null,
+            bank: bankFromKey(consent?.providerKey) ?? bankFromIban(account.iban), sharedOn: consent?.dateRequested ? String(consent.dateRequested).slice(0, 10) : null, enabled: true };
+        })
+      : [...new Map(inWindow.map(row => [row.accountId ?? row.accountNumber, { iban: row.accountNumber ?? row.accountId, accountName: row.accountNumber ?? 'Rekening', accountId: row.accountId, endBalance: null, bank: bankFromIban(row.accountNumber), sharedOn: null, enabled: true }])).values()];
     const accountOf = row => accountList.find(account => (row.accountId && account.accountId === row.accountId) || account.iban === row.accountNumber);
     inWindow.forEach(row => { row.accountNumber = accountOf(row)?.iban ?? row.accountNumber; });
     accountList.forEach(account => {
@@ -1234,7 +1280,7 @@ async function loadDataset(files) {
       return `${entry.profile} ${ok ? '✓' : '✕'}`;
     });
     const roles = ['zakelijk', 'prive'].filter(hasRole).map(role => `${ROLE_LABEL[role].toLowerCase()} ${ACCOUNTS.filter(account => account.role === role).length}`).join(', ');
-    showBanner('good', `Dataset ingeladen: ${label}`, `${TX.length} transacties, ${ACCOUNTS.length} rekening(en) (${roles}), ${WINDOW_12}.${skipped ? ` ${skipped} oudere transacties vallen buiten het venster van 12 maanden.` : ''}${found.accounts ? '' : ' Geen /Accounts-bestand: saldo afgeleid uit balanceAfterTransaction.'}${found.analyses.length ? '' : ' Geen analyse-bestand: KvK-gegevens ontbreken.'}${checks.length ? ` Controle in- en uitstroom tegen <code>generalInfo</code>: ${checks.join(', ')}.` : ''}`);
+    showBanner('good', `Dataset ingeladen: ${label}`, `${TX.length} transacties, ${ACCOUNTS.length} rekening(en) (${roles}), ${WINDOW_12}.${skipped ? ` ${skipped} oudere transacties vallen buiten het venster van 12 maanden.` : ''}${found.accounts.length ? '' : ' Geen /Accounts-bestand: saldo afgeleid uit balanceAfterTransaction.'}${found.consents.length ? '' : ' Geen consent-bestand: bank uit het IBAN, deeldatum onbekend.'}${found.analyses.length ? '' : ' Geen analyse-bestand: KvK-gegevens ontbreken.'}${checks.length ? ` Controle in- en uitstroom tegen <code>generalInfo</code>: ${checks.join(', ')}.` : ''}`);
     setOverlay(overlay);
   } catch (error) {
     showBanner('bad', 'Inladen mislukt', esc(error.message));
@@ -1249,7 +1295,7 @@ function updateOverlayButtons() {
   const allowed = { zakelijk: hasRole('zakelijk'), prive: hasRole('prive'), samen: hasRole('zakelijk') && hasRole('prive') };
   document.querySelectorAll('[data-overlay]').forEach(button => {
     button.disabled = !allowed[button.dataset.overlay];
-    button.title = allowed[button.dataset.overlay] ? '' : 'Geen rekening van dit type in de dataset';
+    button.title = allowed[button.dataset.overlay] ? '' : 'Geen (aangevinkte) rekening van dit type';
     button.setAttribute('aria-pressed', String(button.dataset.overlay === overlay));
   });
   document.getElementById('crumb-profile').textContent = OVERLAY_PROFILE[overlay];
@@ -1263,6 +1309,16 @@ function setOverlay(mode) {
   renderAll();
   showTab(currentTab, false);
 }
+function toggleAccount(iban, on) {
+  const account = accountOfIban(iban);
+  if (!account) return;
+  if (!on && ACCOUNTS.filter(item => item.enabled !== false).length === 1) { renderOverview(); return; }
+  account.enabled = on;
+  const valid = mode => mode === 'samen' ? hasRole('zakelijk') && hasRole('prive') : hasRole(mode);
+  if (!valid(overlay)) overlay = ['zakelijk', 'prive', 'samen'].find(valid) ?? 'zakelijk';
+  setOverlay(overlay);
+  document.querySelector(`[data-account-toggle="${CSS.escape(iban)}"]`)?.focus();
+}
 function setInternal(include) {
   includeInternal = include;
   document.getElementById('internal-include').setAttribute('aria-pressed', String(include));
@@ -1275,6 +1331,7 @@ updateOverlayButtons();
 renderTabs();
 renderAll();
 document.querySelectorAll('[data-overlay]').forEach(button => button.addEventListener('click', () => { if (!button.disabled) setOverlay(button.dataset.overlay); }));
+document.addEventListener('change', event => { const box = event.target.closest('[data-account-toggle]'); if (box) toggleAccount(box.dataset.accountToggle, box.checked); });
 document.getElementById('internal-include').addEventListener('click', () => setInternal(true));
 document.getElementById('internal-exclude').addEventListener('click', () => setInternal(false));
 document.getElementById('modal-close').addEventListener('click', closeModal);

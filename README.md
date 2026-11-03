@@ -12,7 +12,7 @@ Light-versie van de Loanwise-analyse voor zakelijke kredieten, volledig gebouwd 
 | `datasets/mister-x/` | Eenmanszaak met aparte zakelijke (corporate) en privérekening (retail), 616 transacties |
 | `generators/` | Python-scripts waarmee de sets zijn gemaakt |
 
-Elke dataset bevat per Enable Now-call het verzoek en het antwoord: `01` token, `02` accounts, `03` categorisatiejob, `04` transacties (pagina's van 100), `05` analyse.
+Elke dataset bevat per Enable Now-call het verzoek en het antwoord: `00` consents, `01` token, `02` accounts, `03` categorisatiejob, `04` transacties (pagina's van 100), `05` analyse. Eén consent per bank: Mister X heeft er twee (Rabobank zakelijk, ING privé), met per consent eigen account- en transactiebestanden (`02a`/`02b`, `04a`/`04b`).
 
 ## Datasets opnieuw genereren
 
