@@ -254,6 +254,7 @@ analysis = {
 
 # ---------- Bestanden zoals de API ze levert ----------
 dump = lambda name, obj: json.dump(obj, open(os.path.join(OUT, name), 'w'), indent=2, ensure_ascii=False)
+dump('00-get-consents.json', {'request': {'method': 'GET', 'path': '/v2/consents'}, 'response_200': {'data': [{'id': CONSENT, 'status': 'ACTIVE', 'providerKey': 'ing', 'dateStatusUpdated': '2026-11-02T09:41:00Z', 'dateRequested': '2026-11-02T09:41:00Z', 'dateExpire': '2027-05-01T09:41:00Z', 'dateTransactionsUpdated': '2026-11-02T09:41:3Z', 'errors': []}]}, 'note': 'Statuswaarde ACTIVE is een aanname.'})
 dump('01-token.json', {'request': {'method': 'POST', 'path': '/connect/token', 'contentType': 'application/x-www-form-urlencoded', 'body': {'client_id': '<client_id>', 'client_secret': '<client_secret>', 'scope': 'customer-api', 'grant_type': 'client_credentials'}}, 'response_200': {'accessToken': '<jwt>', 'expiresIn': 3600, 'tokenType': 'Bearer'}, 'note': 'Responsvelden en geldigheid zijn een aanname.'})
 dump('02-get-accounts.json', {'request': {'method': 'GET', 'path': '/Accounts', 'query': {'ConsentId': CONSENT}}, 'response_200': {'data': [{'id': a['id'], 'iban': a['iban'], 'providerAccountId': 'ingb-' + a['id'][:8], 'accountHolder': HOLDER, 'bban': None, 'currency': 'EUR', 'accountBalance': {'currency': 'EUR', 'date': '2026-10-31T23:59:59Z', 'amount': a['end']}} for a in ACC]}})
 job = uid()
